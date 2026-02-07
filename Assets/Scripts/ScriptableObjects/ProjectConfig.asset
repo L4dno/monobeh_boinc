@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b3b65000bdd24404c961545ce49aebf6, type: 3}
+  m_Name: ProjectConfig
+  m_EditorClassIdentifier: 
+  <DiskBandWidth>k__BackingField: 0
+  <ServerPower>k__BackingField: 0
+  <DelayBound>k__BackingField: 20
+  <MinQuorum>k__BackingField: 2
+  <TargetNumberOfResults>k__BackingField: 10
+  <MaxErrorResults>k__BackingField: 10
+  <MaxTotalResults>k__BackingField: 10
+  <MaxSuccessResults>k__BackingField: 10
+  <SuccessPercentage>k__BackingField: 95
+  <CanonicalPercentage>k__BackingField: 95

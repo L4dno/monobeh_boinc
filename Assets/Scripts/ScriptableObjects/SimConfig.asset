@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e4252bb4dff068f43975cc6234ba15af, type: 3}
+  m_Name: SimConfig
+  m_EditorClassIdentifier: 
+  <SimLength>k__BackingField: 1
+  <ProjectConfig>k__BackingField: {fileID: 11400000, guid: 5107296204e538a4da627582c74c0193, type: 2}
+  <NumberOfGroups>k__BackingField: 1
+  <GroupConfig>k__BackingField: {fileID: 11400000, guid: 0027abfa8e8bd99419f319673a89e79a, type: 2}

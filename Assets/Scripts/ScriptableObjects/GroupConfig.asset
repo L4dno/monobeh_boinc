@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f885754abc29ae24d92b0ad2b014ed50, type: 3}
+  m_Name: GroupConfig
+  m_EditorClassIdentifier: 
+  <NumberOfClients>k__BackingField: 10
+  <RandomConfig>k__BackingField: {fileID: 11400000, guid: 97291ae00f57a854d930db34d9072a71, type: 2}
+  <MaxSpeed>k__BackingField: 117.71
+  <MinSpeed>k__BackingField: 0.07
+  <SchedulingInterval>k__BackingField: 20
+  <ConnectionInterval>k__BackingField: 20
+  <SchedulerLatency>k__BackingField: 0
+  <DataLatency>k__BackingField: 0
+  <DataBandWidth>k__BackingField: 0

@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 098ab1d0a08210c4580db49611d1a4dd, type: 3}
+  m_Name: RandomConfig
+  m_EditorClassIdentifier: 
+  <DeterministicSeed>k__BackingField: 6523446
+  <PvDistri>k__BackingField: 5
+  <PaParam>k__BackingField: 0.1734
+  <PbParam>k__BackingField: -1
+  <StDistri>k__BackingField: 5
+  <SaParam>k__BackingField: 0.0001
+  <SbParam>k__BackingField: -1
+  <DbDistri>k__BackingField: 5
+  <DaParam>k__BackingField: 0.0001
+  <DbParam>k__BackingField: -1
+  <AvDistri>k__BackingField: 0
+  <AaParam>k__BackingField: 0.393
+  <AbParam>k__BackingField: 2.964
+  <NvDistri>k__BackingField: 2
+  <NaParam>k__BackingField: 2.444
+  <NbParam>k__BackingField: -0.586
+  <XvDistri>k__BackingField: 0
+  <XaParam>k__BackingField: 0.393
+  <XbParam>k__BackingField: 2.964
+  <YvDistri>k__BackingField: 2
+  <YaParam>k__BackingField: 2.844
+  <YbParam>k__BackingField: -0.586

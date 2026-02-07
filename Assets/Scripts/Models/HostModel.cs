@@ -1,0 +1,63 @@
+using System;
+
+public enum HostState
+{
+    On,
+    Off
+}
+
+public class HostModel
+{
+    private readonly RandomConfig _config;
+
+    const int RANDOM_TO_TICKS_FACTOR = 3600;
+
+    private int _timeToSwitch = 0;
+
+    public HostState State {
+        get
+        {
+            if (SimulationManager.Instance.CurSimulationTime == _timeToSwitch)
+            {
+                ChangeState();
+                Debug.Log($"Host state changed to {field}");
+            }
+            return field;
+        }
+        
+        private set => field = value;
+        
+    }
+
+    public double HostPower {get; private set;} // in gflops setting in constructor
+
+    public HostModel(GroupConfig group)
+    {
+        _config = group.RandomConfig;
+        State = HostState.Off;
+        ChangeState();
+        double power = RandomUtils.GetDistribution(_config.HostPowerDistri, _config.PowerA, _config.PowerB);
+        HostPower = System.Math.Clamp(power, group.MinSpeed, group.MaxSpeed);
+    }
+
+    private void ChangeState()
+    {
+        // calculate time for next state switch
+        if (State == HostState.Off)
+        {
+            State = HostState.On;
+            _timeToSwitch += RANDOM_TO_TICKS_FACTOR * RandomUtils.GetDistribution(
+                                                _config.HostAvailabilityDistri, 
+                                                _config.HostAvailabilityA,
+                                                _config.HostAvailabilityB);
+        }
+        else
+        {
+            State = HostState.Off;
+            _timeToSwitch += RANDOM_TO_TICKS_FACTOR * RandomUtils.GetDistribution(
+                                                _config.HostNonavailabilityDistri, 
+                                                _config.HostNonavailabilityA,
+                                                _config.HostNonavailabilityB);
+        }
+    }
+}
