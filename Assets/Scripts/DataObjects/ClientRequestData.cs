@@ -1,11 +1,5 @@
 // client to server
-public class ClientRequestData : IMessage
+public class ClientRequestData
 {
-    public IActor Sender {get;}
-
-    public ClientRequestData(IActor sender)
-    {
-        Sender = sender;
-    }
 }
 

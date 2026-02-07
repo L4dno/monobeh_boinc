@@ -9,10 +9,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e4252bb4dff068f43975cc6234ba15af, type: 3}
+  m_Script: {fileID: 11500000, guid: ba654fe2e69fea546833108861944ac4, type: 3}
   m_Name: SimConfig
   m_EditorClassIdentifier: 
-  <SimLength>k__BackingField: 1
-  <ProjectConfig>k__BackingField: {fileID: 11400000, guid: 5107296204e538a4da627582c74c0193, type: 2}
+  <SimLength>k__BackingField: 96
+  <ProjectConfig>k__BackingField: {fileID: 11400000, guid: 511d7d170163f8a4ead04a683594681d, type: 2}
   <NumberOfGroups>k__BackingField: 1
-  <GroupConfig>k__BackingField: {fileID: 11400000, guid: 0027abfa8e8bd99419f319673a89e79a, type: 2}
+  <GroupConfig>k__BackingField: {fileID: 11400000, guid: eb27d3ca1ce3ba34485e946576290686, type: 2}

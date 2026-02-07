@@ -1,4 +1,6 @@
+using UnityEngine;
 using System;
+
 
 public enum HostState
 {
@@ -14,18 +16,19 @@ public class HostModel
 
     private int _timeToSwitch = 0;
 
+    private HostState _state;
     public HostState State {
         get
         {
-            if (SimulationManager.Instance.CurSimulationTime == _timeToSwitch)
-            {
-                ChangeState();
-                Debug.Log($"Host state changed to {field}");
-            }
-            return field;
+            // if (SimulationManager.Instance.CurSimulationTime == _timeToSwitch)
+            // {
+            //     ChangeState();
+            //     Debug.Log($"Host state changed to {_state}");
+            // }
+            return _state;
         }
         
-        private set => field = value;
+        private set => _state = value;
         
     }
 
@@ -41,23 +44,23 @@ public class HostModel
     }
 
     private void ChangeState()
+{
+    if (State == HostState.Off)
     {
-        // calculate time for next state switch
-        if (State == HostState.Off)
-        {
-            State = HostState.On;
-            _timeToSwitch += RANDOM_TO_TICKS_FACTOR * RandomUtils.GetDistribution(
-                                                _config.HostAvailabilityDistri, 
-                                                _config.HostAvailabilityA,
-                                                _config.HostAvailabilityB);
-        }
-        else
-        {
-            State = HostState.Off;
-            _timeToSwitch += RANDOM_TO_TICKS_FACTOR * RandomUtils.GetDistribution(
-                                                _config.HostNonavailabilityDistri, 
-                                                _config.HostNonavailabilityA,
-                                                _config.HostNonavailabilityB);
-        }
+        State = HostState.On;
+        _timeToSwitch += (int)System.Math.Ceiling(RANDOM_TO_TICKS_FACTOR * 
+            RandomUtils.GetDistribution(_config.HostAvailabilityDistri, 
+                                        _config.HostAvailabilityA,
+                                        _config.HostAvailabilityB));
     }
+    else
+    {
+        State = HostState.Off;
+        _timeToSwitch += (int)System.Math.Ceiling(RANDOM_TO_TICKS_FACTOR * 
+            RandomUtils.GetDistribution(_config.HostNonavailabilityDistri, 
+                                        _config.HostNonavailabilityA,
+                                        _config.HostNonavailabilityB));
+    }
+}
+
 }

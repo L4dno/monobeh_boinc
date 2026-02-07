@@ -8,7 +8,7 @@ public enum ClientState
     Suspended
 }
 
-public class ClientModel : IActor
+public class ClientModel
 {
     // ссылка на структуру базовых настроек
     private readonly GroupConfig _config;
@@ -17,7 +17,7 @@ public class ClientModel : IActor
 
     private ClientState _curState;
 
-    public void Push(IMessage message)
+    public void Push(object message)
     {
         _downloadQueue.Enqueue(message);
     }
@@ -28,28 +28,28 @@ public class ClientModel : IActor
     {
         Debug.Log($"Client {_hostId} called");
 
-        if (SimulationManager._hosts[_hostId].State==HostState.Off &&
-            _curState == ClientState.Suspended)
-        {
-            return;
-        }
-        if (SimulationManager._hosts[_hostId].State==HostState.Off)
-        {
-            // first second of suspend
-            _curSendBytes = 0;
-            _curExecutedFlops = 0;
-            _curState = ClientState.Suspended;
-            return;
-        }
-        if (SimulationManager.Instance.CurSimulationTime >= _timeToConnect)
-        {
-            Fetch();
-        }
-        Execute();
+        // if (SimulationManager._hosts[_hostId].State==HostState.Off &&
+        //     _curState == ClientState.Suspended)
+        // {
+        //     return;
+        // }
+        // if (SimulationManager._hosts[_hostId].State==HostState.Off)
+        // {
+        //     // first second of suspend
+        //     _curSendBytes = 0;
+        //     _curExecutedFlops = 0;
+        //     _curState = ClientState.Suspended;
+        //     return;
+        // }
+        // if (SimulationManager.Instance.CurSimulationTime >= _timeToConnect)
+        // {
+        //     Fetch();
+        // }
+        // Execute();
     }
 
-    private readonly Queue<IMessage> _downloadQueue;
-     private readonly Queue<IMessage> _uploadQueue;
+    private readonly Queue<object> _downloadQueue;
+     private readonly Queue<object> _uploadQueue;
     private int _timeToConnect = 0;
 
     private int _curSendBytes = 0;
@@ -61,18 +61,17 @@ public class ClientModel : IActor
         // потом качаем если надо
 
         // если ничего не осталось, то
-        _timeToConnect = SimulationManager.Instance.CurSimulationTime + 
-                        _config.ConnectionInterval;
+        
     }
 
-    private readonly Queue<IMessage> _computeQueue;
+    private readonly Queue<object> _computeQueue;
     private double _curExecutedFlops = 0;
 
     private void Execute()
     {
         // how to handle idling?
         // if has something than busy
-        if (_computeQueue.Empty())
+        if (_computeQueue.Count == 0)
         {
             _curState = ClientState.Idle;
             return;
@@ -95,7 +94,7 @@ public class ClientModel : IActor
         _hostId = hostId;
 
         _curState = ClientState.Idle;
-        _timeToConnect = RandomUtils.GetDistribution(Distribution.Uniform, 
+        _timeToConnect = (int)RandomUtils.GetDistribution(Distribution.Uniform, 
                                                         MIN_WARMUP_TIME,
                                                         MAX_WARMUP_TIME);
 

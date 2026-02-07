@@ -8,9 +8,9 @@ public class SimulationManager : MonoBehaviour
     public static SimulationManager Instance {get; private set;}
 
     const int DEMONS_NUMBER = 4;
-    private IActor[] _actors;
+    private BaseActor[] _actors;
 
-    [HideInInspector] public HostData[] _hosts;
+    [HideInInspector] public HostModel[] _hosts;
 
     private int _hostId = 0;
     private int _actorId = 0;
@@ -20,31 +20,27 @@ public class SimulationManager : MonoBehaviour
     // inits 1 group
     private void InitGroup()
     {
-        var group = _simConfig.GroupConfig;
-        var randomConfig = group.RandomConfig;
-        for (int i = 0;i<group.NumberOfClients;i++)
-        {
-            _actors[_actorId++] = new ClientModel(group, _hostId);
-            _hosts[_hostId++] = new HostModel(group);
-        }
+        // var group = _simConfig.GroupConfig;
+        // var randomConfig = group.RandomConfig;
+        // for (int i = 0;i<group.NumberOfClients;i++)
+        // {
+        //     _actors[_actorId++] = new ClientModel(group, _hostId);
+        //     _hosts[_hostId++] = new HostModel(group);
+        // }
     }
 
     private void InitProject()
     {
-        var project = _simConfig.ProjectConfig;
-        // generator, validator, assimilator, scheduler
-        _actors[_actorId++] = new WorkGeneratorModel(_hostId);
-        _actors[_actorId++] = new ValidatorModel(_hostId);
-        _actors[_actorId++] = new AssimilatorModel(_hostId);
-        _actors[_actorId++] = new SchedulerModel(_hostId);
+        // var project = _simConfig.ProjectConfig;
+        // // generator, validator, assimilator, scheduler
+        // _actors[_actorId++] = new WorkGeneratorModel(_hostId);
+        // _actors[_actorId++] = new ValidatorModel(_hostId);
+        // _actors[_actorId++] = new AssimilatorModel(_hostId);
+        // _actors[_actorId++] = new SchedulerModel(_hostId);
     }
 
     
-
-    public int CurSimulationTime {get; private set;}
     private int _maxSimulationTime;
-
-    [SerializeField, Min(1)] private int _ticksPerFrame = 1;
 
     void Awake()
     {
@@ -58,14 +54,13 @@ public class SimulationManager : MonoBehaviour
             Destroy(gameObject);  
         }
         
-        CurSimulationTime = 0;
         _maxSimulationTime = _simConfig.SimLength * 60 * 60;
-        _actors = new IActor[DEMONS_NUMBER + _simConfig.GroupConfig.NumberOfClients];
+        _actors = new BaseActor[DEMONS_NUMBER + _simConfig.GroupConfig.NumberOfClients];
         _hosts = new HostModel[_simConfig.GroupConfig.NumberOfClients];
         RandomUtils.SetSeed(_simConfig.GroupConfig.RandomConfig.DeterministicSeed);
     
-        InitGroup();
-        InitProject();
+        //InitGroup();
+        //InitProject();
 
     }
 
@@ -74,23 +69,19 @@ public class SimulationManager : MonoBehaviour
     void Update()
     {
         
-        for (int i = 0; i < _ticksPerFrame; i++)
-        {
-            if (_curSimulationTime == _maxSimulationTime)
-            {
-                QuitGame();
-                return;
-            }
+        // for (int i = 0; i < _ticksPerFrame; i++)
+        // {
+        //     if (_curSimulationTime == _maxSimulationTime)
+        //     {
+        //         QuitGame();
+        //         return;
+        //     }
 
-            _curSimulationTime++;
+        //     _curSimulationTime++;
 
-            // for actors
-            foreach (IActor actor in _actors)
-            {
-                actor.Tick();
-            }
+        //     // for actors
             
-        }
+        // }
     }
 
     private void QuitGame()

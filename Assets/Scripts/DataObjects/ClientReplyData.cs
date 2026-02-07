@@ -1,10 +1,5 @@
-public class ClientReplyData : IMessage
+public class ClientReplyData
 {
-    public IActor Sender {get;}
 
-    public ClientReplyData(IActor sender)
-    {
-        Sender = sender;
-    }
 
 }

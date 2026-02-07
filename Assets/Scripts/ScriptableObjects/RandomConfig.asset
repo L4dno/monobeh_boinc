@@ -9,28 +9,22 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 098ab1d0a08210c4580db49611d1a4dd, type: 3}
+  m_Script: {fileID: 11500000, guid: 1cb8cfeb1c2b3ec42a9329206484658f, type: 3}
   m_Name: RandomConfig
   m_EditorClassIdentifier: 
   <DeterministicSeed>k__BackingField: 6523446
-  <PvDistri>k__BackingField: 5
-  <PaParam>k__BackingField: 0.1734
-  <PbParam>k__BackingField: -1
-  <StDistri>k__BackingField: 5
-  <SaParam>k__BackingField: 0.0001
-  <SbParam>k__BackingField: -1
-  <DbDistri>k__BackingField: 5
-  <DaParam>k__BackingField: 0.0001
-  <DbParam>k__BackingField: -1
-  <AvDistri>k__BackingField: 0
-  <AaParam>k__BackingField: 0.393
-  <AbParam>k__BackingField: 2.964
-  <NvDistri>k__BackingField: 2
-  <NaParam>k__BackingField: 2.444
-  <NbParam>k__BackingField: -0.586
-  <XvDistri>k__BackingField: 0
-  <XaParam>k__BackingField: 0.393
-  <XbParam>k__BackingField: 2.964
-  <YvDistri>k__BackingField: 2
-  <YaParam>k__BackingField: 2.844
-  <YbParam>k__BackingField: -0.586
+  <HostPowerDistri>k__BackingField: 5
+  <PowerA>k__BackingField: 0.1734
+  <PowerB>k__BackingField: -1
+  <HostAvailabilityDistri>k__BackingField: 0
+  <HostAvailabilityA>k__BackingField: 0.393
+  <HostAvailabilityB>k__BackingField: 2.964
+  <HostNonavailabilityDistri>k__BackingField: 2
+  <HostNonavailabilityA>k__BackingField: 2.444
+  <HostNonavailabilityB>k__BackingField: -0.586
+  <CpuAvailabilityDistri>k__BackingField: 0
+  <CpuAvailabilityA>k__BackingField: 0.393
+  <CpuAvailabilityB>k__BackingField: 2.964
+  <CpuNonavailabilityDistri>k__BackingField: 2
+  <CpuNonavailabilityA>k__BackingField: 2.844
+  <CpuNonavailabilityB>k__BackingField: -0.586
