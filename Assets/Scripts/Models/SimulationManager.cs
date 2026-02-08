@@ -3,8 +3,20 @@ using UnityEditor;
 #endif
 using UnityEngine;
 
+using System.Collections;
+
 public class SimulationManager : MonoBehaviour
 {
+    public static Coroutine StartRoutine(IEnumerator routine)
+    {
+        return Instance.StartCoroutine(routine);
+    }
+    
+    public static void StopRoutine(Coroutine routine)
+    {
+        Instance.StopCoroutine(routine);
+    }
+
     public static SimulationManager Instance {get; private set;}
 
     const int DEMONS_NUMBER = 4;

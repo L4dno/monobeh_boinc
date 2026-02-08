@@ -6,7 +6,7 @@ public class TimeTickSystem : MonoBehaviour
     public static TimeTickSystem Instance { get; private set; }
     public static event Action<int> OnTick;
     private const double TICK_DURATION = 0.2d; // 200 ms
-    private int _curTick = 0;
+    public int CurTick {get; private set;} = 0;
     private double _tickTimer = 0;
 
     private void Awake()
@@ -25,10 +25,10 @@ public class TimeTickSystem : MonoBehaviour
         while (_tickTimer >= TICK_DURATION)
         {
             _tickTimer -= TICK_DURATION;
-            _curTick++;
+            CurTick++;
             
-            OnTick?.Invoke(_curTick);
-            //UnityEngine.Debug.Log($"Tick {_curTick}");
+            OnTick?.Invoke(CurTick);
+            //UnityEngine.Debug.Log($"Tick {CurTick}");
         }
     }
 
