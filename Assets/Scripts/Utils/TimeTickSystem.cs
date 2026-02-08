@@ -3,25 +3,45 @@ using System;
 
 public class TimeTickSystem : MonoBehaviour
 {
+    public static TimeTickSystem Instance { get; private set; }
     public static event Action<int> OnTick;
     private const double TICK_DURATION = 0.2d; // 200 ms
-    private int _curTick;
-    private double _tickTimer;
+    private int _curTick = 0;
+    private double _tickTimer = 0;
 
     private void Awake()
     {
-        _curTick = 0;
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+        Instance = this;
     }
     private void Update()
     {
         _tickTimer += Time.deltaTime;
-        if (_tickTimer >= TICK_DURATION)
+
+        while (_tickTimer >= TICK_DURATION)
         {
             _tickTimer -= TICK_DURATION;
             _curTick++;
             
-            if (OnTick != null) OnTick(_curTick);
+            OnTick?.Invoke(_curTick);
             //UnityEngine.Debug.Log($"Tick {_curTick}");
         }
+    }
+
+    private void OnDestroy()
+    {
+        if (Instance == this)
+        {
+            ClearListeners();
+        }
+    }
+
+    private void ClearListeners()
+    {
+        OnTick = null;
     }
 }

@@ -16,12 +16,6 @@ public class ClientModel : BaseActor
     private readonly int _hostId;
 
     private ClientState _curState;
-
-    public void Push(object message)
-    {
-        _downloadQueue.Enqueue(message);
-    }
-
     
 
     protected override void Tick(int curTick)
@@ -48,8 +42,8 @@ public class ClientModel : BaseActor
         // Execute();
     }
 
-    private readonly Queue<object> _downloadQueue;
-     private readonly Queue<object> _uploadQueue;
+    //private readonly Queue<object> _downloadQueue;
+    //private readonly Queue<object> _uploadQueue;
     private int _timeToConnect = 0;
 
     private int _curSendBytes = 0;
@@ -64,35 +58,34 @@ public class ClientModel : BaseActor
         
     }
 
-    private readonly Queue<object> _computeQueue;
+    //private readonly Queue<object> _computeQueue;
     private double _curExecutedFlops = 0;
 
-    private void Execute()
-    {
-        // how to handle idling?
-        // if has something than busy
-        if (_computeQueue.Count == 0)
-        {
-            _curState = ClientState.Idle;
-            return;
-        }
-        else
-        {
-            var curTask = _computeQueue.Peek();
-            //if (curTask.Flops > _curExecutedFlops)
-        }
-    }
+    // private void Execute()
+    // {
+    //     // how to handle idling?
+    //     // if has something than busy
+    //     if (_computeQueue.Count == 0)
+    //     {
+    //         _curState = ClientState.Idle;
+    //         return;
+    //     }
+    //     else
+    //     {
+    //         var curTask = _computeQueue.Peek();
+    //         //if (curTask.Flops > _curExecutedFlops)
+    //     }
+    // }
 
 
 
     const int MIN_WARMUP_TIME = 0;
     const int MAX_WARMUP_TIME = 3600;
 
-    public ClientModel(GroupConfig config, int hostId)
+    public ClientModel(GroupConfig config, int hostId) : base()
     {
         _config = config;
         _hostId = hostId;
-        // подписка и отписка в деструкторе
 
         _curState = ClientState.Idle;
         _timeToConnect = (int)RandomUtils.GetDistribution(Distribution.Uniform, 

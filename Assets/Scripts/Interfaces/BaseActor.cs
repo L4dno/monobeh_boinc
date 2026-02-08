@@ -1,7 +1,9 @@
 using UnityEngine;
 using System.Collections.Generic;
+using System;
 
-public abstract class BaseActor
+// живет во времени симуляции. Каждую секунду проверяет состояние.
+public abstract class BaseActor : IDisposable
 {
     private readonly Queue<object> _mailBox = new Queue<object>();
     // Аналог помещения в xbt_queue_t очередь сообщений
@@ -9,8 +11,15 @@ public abstract class BaseActor
     // так же отмечает себя как активного на родительском хосте
     public void Push(object message) => _mailBox.Enqueue(message);
 
-    // вызывается менеджером симуляции каждый тик таймера у всех акторов
-    // при нужном состоянии забирает у хоста чуть мощности сам
+    public BaseActor()
+    {
+        TimeTickSystem.OnTick += Tick;
+    }
+
+    public void Dispose()
+    {
+        TimeTickSystem.OnTick -= Tick;
+    }
     protected abstract void Tick(int curTick);
 
     // public void ProcessMailbox()

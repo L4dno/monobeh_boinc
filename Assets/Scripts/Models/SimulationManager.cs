@@ -21,7 +21,6 @@ public class SimulationManager : MonoBehaviour
     private void InitGroup()
     {
         var group = _simConfig.GroupConfig;
-        var randomConfig = group.RandomConfig;
         for (int i = 0;i<group.NumberOfClients;i++)
         {
             _actors[_actorId++] = new ClientModel(group, _hostId);
@@ -50,9 +49,6 @@ public class SimulationManager : MonoBehaviour
                 QuitGame();
                 return;
             }
-        
-        
-
     }
 
     void Awake()
