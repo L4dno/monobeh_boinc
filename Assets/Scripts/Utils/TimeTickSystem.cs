@@ -1,4 +1,5 @@
 using UnityEngine;
+using System;
 
 public class TimeTickSystem : MonoBehaviour
 {
@@ -18,8 +19,9 @@ public class TimeTickSystem : MonoBehaviour
         {
             _tickTimer -= TICK_DURATION;
             _curTick++;
+            
             if (OnTick != null) OnTick(_curTick);
-            UnityEngine.Debug.Log($"Tick {_curTick}");
+            //UnityEngine.Debug.Log($"Tick {_curTick}");
         }
     }
 }

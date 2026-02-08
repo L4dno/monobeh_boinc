@@ -28,3 +28,4 @@
 *.pdb.meta
 *.mdb.meta
 sysinfo.txt
+*/CM/*

@@ -1,28 +1,28 @@
 using UnityEngine;
 using System.Collections.Generic;
 
-public abstract class BaseActor : MonoBehaviour
+public abstract class BaseActor
 {
-    private readonly Queue<object> _mailbox = new Queue<object>();
+    private readonly Queue<object> _mailBox = new Queue<object>();
     // Аналог помещения в xbt_queue_t очередь сообщений
     // родительский класс для сервера и клиента
     // так же отмечает себя как активного на родительском хосте
-    public void Push(object message) => _mailbox.Enqueue(message);
+    public void Push(object message) => _mailBox.Enqueue(message);
 
     // вызывается менеджером симуляции каждый тик таймера у всех акторов
     // при нужном состоянии забирает у хоста чуть мощности сам
-    //protected virtual void OnTick();
+    protected abstract void Tick(int curTick);
 
-    public void ProcessMailbox()
-    {
-        while (_mailbox.Count > 0)
-        {
-            var msg = _mailbox.Dequeue();
-            OnReceive(msg);
-        }
-    }
+    // public void ProcessMailbox()
+    // {
+    //     while (_mailbox.Count > 0)
+    //     {
+    //         var msg = _mailbox.Dequeue();
+    //         OnReceive(msg);
+    //     }
+    // }
 
-    protected abstract void OnReceive(object message);
+    // protected abstract void OnReceive(object message);
 }
 
 // // Реализация

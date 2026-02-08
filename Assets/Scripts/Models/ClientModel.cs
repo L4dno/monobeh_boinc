@@ -8,7 +8,7 @@ public enum ClientState
     Suspended
 }
 
-public class ClientModel
+public class ClientModel : BaseActor
 {
     // ссылка на структуру базовых настроек
     private readonly GroupConfig _config;
@@ -24,7 +24,7 @@ public class ClientModel
 
     
 
-    public void Tick()
+    protected override void Tick(int curTick)
     {
         Debug.Log($"Client {_hostId} called");
 
@@ -92,6 +92,7 @@ public class ClientModel
     {
         _config = config;
         _hostId = hostId;
+        // подписка и отписка в деструкторе
 
         _curState = ClientState.Idle;
         _timeToConnect = (int)RandomUtils.GetDistribution(Distribution.Uniform, 

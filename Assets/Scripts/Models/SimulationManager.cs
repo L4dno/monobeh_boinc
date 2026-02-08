@@ -20,13 +20,13 @@ public class SimulationManager : MonoBehaviour
     // inits 1 group
     private void InitGroup()
     {
-        // var group = _simConfig.GroupConfig;
-        // var randomConfig = group.RandomConfig;
-        // for (int i = 0;i<group.NumberOfClients;i++)
-        // {
-        //     _actors[_actorId++] = new ClientModel(group, _hostId);
-        //     _hosts[_hostId++] = new HostModel(group);
-        // }
+        var group = _simConfig.GroupConfig;
+        var randomConfig = group.RandomConfig;
+        for (int i = 0;i<group.NumberOfClients;i++)
+        {
+            _actors[_actorId++] = new ClientModel(group, _hostId);
+            _hosts[_hostId++] = new HostModel(group);
+        }
     }
 
     private void InitProject()
@@ -42,8 +42,27 @@ public class SimulationManager : MonoBehaviour
     
     private int _maxSimulationTime;
 
+    private void Tick(int curTick)
+    {
+        Debug.Log($"tick: {curTick}");
+        if (curTick == _maxSimulationTime)
+            {
+                QuitGame();
+                return;
+            }
+        
+        
+
+    }
+
     void Awake()
     {
+        TimeTickSystem.OnTick += Tick;
+    //    TimeTickSystem.OnTick += (int tick) => {
+    //         Debug.Log($"tick: {tick}");
+    //     };
+
+
         if (Instance == null)  
         {        
             Instance = this;  
@@ -54,34 +73,19 @@ public class SimulationManager : MonoBehaviour
             Destroy(gameObject);  
         }
         
-        _maxSimulationTime = _simConfig.SimLength * 60 * 60;
+        _maxSimulationTime = _simConfig.SimLength;
         _actors = new BaseActor[DEMONS_NUMBER + _simConfig.GroupConfig.NumberOfClients];
         _hosts = new HostModel[_simConfig.GroupConfig.NumberOfClients];
         RandomUtils.SetSeed(_simConfig.GroupConfig.RandomConfig.DeterministicSeed);
     
-        //InitGroup();
+        InitGroup();
         //InitProject();
 
     }
 
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-        // for (int i = 0; i < _ticksPerFrame; i++)
-        // {
-        //     if (_curSimulationTime == _maxSimulationTime)
-        //     {
-        //         QuitGame();
-        //         return;
-        //     }
-
-        //     _curSimulationTime++;
-
-        //     // for actors
-            
-        // }
+    private void OnDestroy() {
+    // Обязательно отписываемся при уничтожении
+        TimeTickSystem.OnTick -= Tick;
     }
 
     private void QuitGame()
