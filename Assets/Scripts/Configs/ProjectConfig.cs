@@ -8,7 +8,7 @@ public class ProjectConfig : ScriptableObject
     public TaskConfig TaskConfig {get;}
 
     [field: SerializeField]
-    public double ServerPower { get; private set; }
+    public double ServerPowerGflops { get; private set; }
 
     [field: SerializeField]
     public int DelayBound {get; private set;} = 20;

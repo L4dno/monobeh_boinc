@@ -36,12 +36,7 @@ public class TimeTickSystem : MonoBehaviour
     {
         if (Instance == this)
         {
-            ClearListeners();
+            OnTick = null;
         }
-    }
-
-    private void ClearListeners()
-    {
-        OnTick = null;
     }
 }

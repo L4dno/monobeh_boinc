@@ -2,8 +2,8 @@ using UnityEngine;
 using System.Collections.Generic;
 using System;
 
-// живет во времени симуляции. Каждую секунду проверяет состояние.
-public abstract class BaseActor : IDisposable
+// сущность живущая во времени симуляции. Каждую секунду проверяет состояние.
+public abstract class BaseActor
 {
     private readonly Queue<object> _mailBox = new Queue<object>();
     // Аналог помещения в xbt_queue_t очередь сообщений
@@ -14,11 +14,6 @@ public abstract class BaseActor : IDisposable
     public BaseActor()
     {
         TimeTickSystem.OnTick += Tick;
-    }
-
-    public void Dispose()
-    {
-        TimeTickSystem.OnTick -= Tick;
     }
     protected abstract void Tick(int curTick);
 

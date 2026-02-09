@@ -10,21 +10,21 @@ public enum HostState
 
 public class HostModel
 {
-    private readonly RandomConfig _config;
+    private RandomConfig _config;
 
     const int RANDOM_TO_TICKS_FACTOR = 3600;
 
-    private int _timeToSwitch = 0;
+    private int _tickToSwitch = 0;
 
     private HostState _state;
     public HostState State {
         get
         {
-            // if (SimulationManager.Instance.CurSimulationTime == _timeToSwitch)
-            // {
-            //     ChangeState();
-            //     Debug.Log($"Host state changed to {_state}");
-            // }
+            if (TimeTickSystem.Instance.CurTick >= _tickToSwitch)
+            {
+                ChangeState();
+                Debug.Log($"Host state changed to {_state}");
+            }
             return _state;
         }
         
@@ -37,26 +37,32 @@ public class HostModel
     public HostModel(GroupConfig group)
     {
         _config = group.RandomConfig;
-        State = HostState.Off;
+        _state = HostState.Off;
         ChangeState();
         double power = RandomUtils.GetDistribution(_config.HostPowerDistri, _config.PowerA, _config.PowerB);
         HostPower = System.Math.Clamp(power, group.MinSpeed, group.MaxSpeed);
     }
 
+    public HostModel(ProjectConfig project)
+    {
+        _state = HostState.On;
+        HostPower = project.ServerPowerGflops;
+    }
+
     private void ChangeState()
 {
-    if (State == HostState.Off)
+    if (_state == HostState.Off)
     {
-        State = HostState.On;
-        _timeToSwitch += (int)System.Math.Ceiling(RANDOM_TO_TICKS_FACTOR * 
+        _state = HostState.On;
+        _tickToSwitch += (int)System.Math.Ceiling(RANDOM_TO_TICKS_FACTOR * 
             RandomUtils.GetDistribution(_config.HostAvailabilityDistri, 
                                         _config.HostAvailabilityA,
                                         _config.HostAvailabilityB));
     }
     else
     {
-        State = HostState.Off;
-        _timeToSwitch += (int)System.Math.Ceiling(RANDOM_TO_TICKS_FACTOR * 
+        _state = HostState.Off;
+        _tickToSwitch += (int)System.Math.Ceiling(RANDOM_TO_TICKS_FACTOR * 
             RandomUtils.GetDistribution(_config.HostNonavailabilityDistri, 
                                         _config.HostNonavailabilityA,
                                         _config.HostNonavailabilityB));

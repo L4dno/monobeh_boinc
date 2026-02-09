@@ -19,10 +19,8 @@ public class SimulationManager : MonoBehaviour
 
     public static SimulationManager Instance {get; private set;}
 
-    const int DEMONS_NUMBER = 4;
     private BaseActor[] _actors;
-
-    [HideInInspector] public HostModel[] _hosts;
+    [HideInInspector] public HostModel[] hosts;
 
     private int _hostId = 0;
     private int _actorId = 0;
@@ -36,15 +34,16 @@ public class SimulationManager : MonoBehaviour
         for (int i = 0;i<group.NumberOfClients;i++)
         {
             _actors[_actorId++] = new ClientModel(group, _hostId);
-            _hosts[_hostId++] = new HostModel(group);
+            hosts[_hostId++] = new HostModel(group);
         }
     }
 
     private void InitProject()
     {
-        // var project = _simConfig.ProjectConfig;
-        // // generator, validator, assimilator, scheduler
-        // _actors[_actorId++] = new WorkGeneratorModel(_hostId);
+        var project = _simConfig.ProjectConfig;
+        
+        _actors[_actorId++] = new ProjectModel(project, _hostId);
+        hosts[_hostId++] = new HostModel(project);
         // _actors[_actorId++] = new ValidatorModel(_hostId);
         // _actors[_actorId++] = new AssimilatorModel(_hostId);
         // _actors[_actorId++] = new SchedulerModel(_hostId);
@@ -59,7 +58,6 @@ public class SimulationManager : MonoBehaviour
         if (curTick == _maxSimulationTime)
             {
                 QuitGame();
-                return;
             }
     }
 
@@ -81,19 +79,17 @@ public class SimulationManager : MonoBehaviour
             Destroy(gameObject);  
         }
         
-        _maxSimulationTime = _simConfig.SimLength;
-        _actors = new BaseActor[DEMONS_NUMBER + _simConfig.GroupConfig.NumberOfClients];
-        _hosts = new HostModel[_simConfig.GroupConfig.NumberOfClients];
+        _maxSimulationTime = _simConfig.SimLength; //*3600
+        _actors = new BaseActor[_simConfig.NumberOfProjects +
+                               _simConfig.GroupConfig.NumberOfClients];
+        hosts = new HostModel[_simConfig.NumberOfProjects +
+                               _simConfig.GroupConfig.NumberOfClients];
         RandomUtils.SetSeed(_simConfig.GroupConfig.RandomConfig.DeterministicSeed);
     
+        InitProject();
         InitGroup();
-        //InitProject();
+        
 
-    }
-
-    private void OnDestroy() {
-    // Обязательно отписываемся при уничтожении
-        TimeTickSystem.OnTick -= Tick;
     }
 
     private void QuitGame()
