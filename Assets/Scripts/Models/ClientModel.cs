@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections;
 using System.Collections.Generic;
 
 public enum ClientState
@@ -18,75 +19,78 @@ public class ClientModel : BaseActor
     private ClientState _curState;
     
 
+    private readonly Queue<object> _computeQueue = new Queue<object>();
+    private readonly Queue<object> _uploadQueue = new Queue<object>();
+
+    private Coroutine _networking;
+    private Coroutine _executing;
+
+    private int _tickToConnect;
+
     protected override void Tick(int curTick)
     {
-        //Debug.Log($"Client {_hostId} called");
-
+        
         if (SimulationManager.Instance.hosts[_hostId].State==HostState.Off &&
-            _curState == ClientState.Suspended)
-        {
-            return;
-        }
-        if (SimulationManager.Instance.hosts[_hostId].State==HostState.Off)
+            _curState != ClientState.Suspended)
         {
             // first second of suspend
-            //_curSendBytes = 0;
-            //_curExecutedFlops = 0;
+            SimulationManager.Instance.StopCoroutine(_networking);
+            _networking = null;
+            SimulationManager.Instance.StopCoroutine(_executing);
+            _executing = null;
             _curState = ClientState.Suspended;
             Debug.Log($"Client {_hostId} suspended on tick {curTick}");
-            return;
         }
-        // checking work queue and it is busy or idle
         
-        if (_curState == ClientState.Suspended) {
-            Debug.Log($"Client {_hostId} idle on tick {curTick}");
-            _curState = ClientState.Idle;
+        if (SimulationManager.Instance.hosts[_hostId].State==HostState.On) {
+            
+            if (_computeQueue.Count > 0 && _curState != ClientState.Busy)
+            {
+                _curState = ClientState.Busy;
+                Debug.Log($"Client {_hostId} busy on tick {curTick}");
+            }
+            else if (_curState != ClientState.Idle)
+            {
+                _curState = ClientState.Idle;
+                Debug.Log($"Client {_hostId} idle on tick {curTick}");
+            }
+
         }
 
-        // if (SimulationManager.Instance.CurSimulationTime >= _timeToConnect)
-        // {
-        //     Fetch();
-        // }
-        // Execute();
+        switch (_curState)
+        {
+            case ClientState.Suspended:
+                break;
+            case ClientState.Busy:
+                HandleBusy();
+                HandleIdle();
+                break;
+            case ClientState.Idle:
+                HandleIdle();
+                break;
+        }
+        
     }
 
-    //private readonly Queue<object> _downloadQueue;
-    //private readonly Queue<object> _uploadQueue;
-    private int _timeToConnect = 0;
-
-    private int _curSendBytes = 0;
-
-    private void Fetch()
+    private void HandleIdle()
     {
-        // send requests or replies to server
-        // сначала репортим пока можем
-        // потом качаем если надо
-
-        // если ничего не осталось, то
+        
+    }
+    private void HandleBusy()
+    {
         
     }
 
-    //private readonly Queue<object> _computeQueue;
-    private double _curExecutedFlops = 0;
+    private IEnumerator NetworkRoutine()
+    {
+        // обнули ссылку в конце
+        return null;
+    }
 
-    // private void Execute()
-    // {
-    //     // how to handle idling?
-    //     // if has something than busy
-    //     if (_computeQueue.Count == 0)
-    //     {
-    //         _curState = ClientState.Idle;
-    //         return;
-    //     }
-    //     else
-    //     {
-    //         var curTask = _computeQueue.Peek();
-    //         //if (curTask.Flops > _curExecutedFlops)
-    //     }
-    // }
-
-
-
+    private IEnumerator ExecuteRoutine()
+    {
+        return null;
+    }
     const int MIN_WARMUP_TIME = 0;
     const int MAX_WARMUP_TIME = 3600;
 
@@ -96,7 +100,7 @@ public class ClientModel : BaseActor
         _hostId = hostId;
 
         _curState = ClientState.Idle;
-        _timeToConnect = (int)RandomUtils.GetDistribution(Distribution.Uniform, 
+        _tickToConnect = (int)RandomUtils.GetDistribution(Distribution.Uniform, 
                                                         MIN_WARMUP_TIME,
                                                         MAX_WARMUP_TIME);
 
