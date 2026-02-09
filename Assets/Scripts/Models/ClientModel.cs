@@ -34,12 +34,19 @@ public class ClientModel : BaseActor
             _curState != ClientState.Suspended)
         {
             // first second of suspend
-            SimulationManager.Instance.StopCoroutine(_networking);
-            _networking = null;
-            SimulationManager.Instance.StopCoroutine(_executing);
-            _executing = null;
             _curState = ClientState.Suspended;
             Debug.Log($"Client {_hostId} suspended on tick {curTick}");
+
+            if (_networking != null)
+            {
+                SimulationManager.StopRoutine(_networking);
+                _networking = null;
+            }
+            if (_executing != null)
+            {
+                SimulationManager.StopRoutine(_executing);
+                _executing = null;
+            }
         }
         
         if (SimulationManager.Instance.hosts[_hostId].State==HostState.On) {
@@ -74,22 +81,30 @@ public class ClientModel : BaseActor
 
     private void HandleIdle()
     {
-        
+        if (_networking == null)
+        {
+            _networking = SimulationManager.StartRoutine(NetworkRoutine());
+        }
     }
     private void HandleBusy()
     {
-        
+        if (_executing == null)
+        {
+            _executing = SimulationManager.StartRoutine(ExecuteRoutine());
+        }
     }
 
     private IEnumerator NetworkRoutine()
     {
         // обнули ссылку в конце
-        return null;
+        yield return null;
+        _networking = null;
     }
 
     private IEnumerator ExecuteRoutine()
     {
-        return null;
+        yield return null;
+        _executing = null;
     }
     const int MIN_WARMUP_TIME = 0;
     const int MAX_WARMUP_TIME = 3600;
