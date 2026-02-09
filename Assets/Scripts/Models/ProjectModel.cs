@@ -8,7 +8,7 @@ public class ProjectModel : BaseActor
 
     protected override void Tick(int curTick)
     {
-        Debug.Log($"Project called on host {_hostId}");
+        //Debug.Log($"Project called on host {_hostId}");
     }
 
     public ProjectModel(ProjectConfig config, int hostId)

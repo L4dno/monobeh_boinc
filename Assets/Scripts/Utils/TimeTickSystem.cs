@@ -5,7 +5,7 @@ public class TimeTickSystem : MonoBehaviour
 {
     public static TimeTickSystem Instance { get; private set; }
     public static event Action<int> OnTick;
-    private const double TICK_DURATION = 0.2d; // 200 ms
+    private const double TICK_DURATION = 0.001d; // 200 ms
     public int CurTick {get; private set;} = 0;
     private double _tickTimer = 0;
 

@@ -54,7 +54,7 @@ public class SimulationManager : MonoBehaviour
 
     private void Tick(int curTick)
     {
-        Debug.Log($"tick: {curTick}");
+        //Debug.Log($"tick: {curTick}");
         if (curTick == _maxSimulationTime)
             {
                 QuitGame();
@@ -79,7 +79,7 @@ public class SimulationManager : MonoBehaviour
             Destroy(gameObject);  
         }
         
-        _maxSimulationTime = _simConfig.SimLength; //*3600
+        _maxSimulationTime = _simConfig.SimLength * 3600;
         _actors = new BaseActor[_simConfig.NumberOfProjects +
                                _simConfig.GroupConfig.NumberOfClients];
         hosts = new HostModel[_simConfig.NumberOfProjects +

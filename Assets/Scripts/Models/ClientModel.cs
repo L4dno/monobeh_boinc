@@ -20,21 +20,29 @@ public class ClientModel : BaseActor
 
     protected override void Tick(int curTick)
     {
-        Debug.Log($"Client {_hostId} called");
+        //Debug.Log($"Client {_hostId} called");
 
-        // if (SimulationManager._hosts[_hostId].State==HostState.Off &&
-        //     _curState == ClientState.Suspended)
-        // {
-        //     return;
-        // }
-        // if (SimulationManager._hosts[_hostId].State==HostState.Off)
-        // {
-        //     // first second of suspend
-        //     _curSendBytes = 0;
-        //     _curExecutedFlops = 0;
-        //     _curState = ClientState.Suspended;
-        //     return;
-        // }
+        if (SimulationManager.Instance.hosts[_hostId].State==HostState.Off &&
+            _curState == ClientState.Suspended)
+        {
+            return;
+        }
+        if (SimulationManager.Instance.hosts[_hostId].State==HostState.Off)
+        {
+            // first second of suspend
+            //_curSendBytes = 0;
+            //_curExecutedFlops = 0;
+            _curState = ClientState.Suspended;
+            Debug.Log($"Client {_hostId} suspended on tick {curTick}");
+            return;
+        }
+        // checking work queue and it is busy or idle
+        
+        if (_curState == ClientState.Suspended) {
+            Debug.Log($"Client {_hostId} idle on tick {curTick}");
+            _curState = ClientState.Idle;
+        }
+
         // if (SimulationManager.Instance.CurSimulationTime >= _timeToConnect)
         // {
         //     Fetch();
