@@ -1,4 +1,4 @@
-using System;
+using UnityEngine;
 
 public enum Distribution
 {
@@ -8,151 +8,143 @@ public enum Distribution
     Normal,
     Hyperx,
     Exponential,
-
     One,
     Zero,
     Uniform
 }
 
-// должен задаваться сид обез
-// в паблик методе проверку на нулл
-// не потокобезопасно
 public static class RandomUtils
 {
-    private static System.Random _random;
+    private static bool _isInitialized = false;
 
     public static void SetSeed(int seed)
     {
-        if (_random != null)
-            throw new InvalidOperationException("Trying to reset current seed");
+        if (_isInitialized)
+            throw new System.InvalidOperationException("Trying to reset current seed");
 
-        _random = new Random(seed);
+        UnityEngine.Random.InitState(seed);
+        _isInitialized = true;
     }
 
-    private static double Uniform()
+    private static float Uniform()
     {
-        return _random.NextDouble();
+        return UnityEngine.Random.value;
     }
 
-    private static double UniformPositive()
+    private static float UniformPositive()
     {
-        double g;
-        g=Uniform();
-        while (g==0.0)
-            g=Uniform();
+        float g;
+        do
+        {
+            g = Uniform();
+        }
+        while (g == 0.0f);
 
         return g;
     }
 
-    // границы [l;r)
-    private static double UniformMinMax(double min, double max)
+    private static float UniformMinMax(float min, float max)
     {
         if (min > max)
-            throw new ArgumentException("Min is greater than max");
+            throw new System.ArgumentException("Min is greater than max");
 
-        return (min + (max-min)*Uniform());
+        return min + (max - min) * Uniform();
     }
 
-    // границы включаются обе
     private static int UniformInt(int min, int max)
     {
         if (min > max)
-            throw new ArgumentException("Min is greater than max");
+            throw new System.ArgumentException("Min is greater than max");
         
-        return _random.Next(min, max+1);
+        return UnityEngine.Random.Range(min, max + 1);
     }
 
-    /*--------------  EXPONENTIAL RANDOM VARIATE GENERATOR  --------------*/
-    /* The exponential distribution has the form
-
-    p(x) dx = exp(-x/landa) dx/landa
-
-    for x = 0 ... +infty 
-    */
-
-    private static double Exponential(double landa)
+    private static float Exponential(float landa)
     {
-        double u = UniformPositive();
-        double mean = 1.0 / landa;
+        float u = UniformPositive();
+        float mean = 1.0f / landa;
 
-        return -mean * Math.Log(u);
+        return -mean * Mathf.Log(u);
     } 
 
-    private static double Erlang(double x, double s)
+    private static float Erlang(float x, float s)
     {
-        int i, k; double z;
+        int i, k;
+        float z;
         if (s > x)
-            throw new ArgumentException("erlang Argument Error: s > x");
-        z=x/s; k=(int)(z*z);
-        z=1.0; for (i=0; i<k; i++) z*=UniformPositive();
-        return(-(x/k)*Math.Log(z));
-    }
-
-    private static double Hyperx(double x, double s)
-    {
-        double cv,z,p;
-        if (s<=x)
-            throw new ArgumentException("hyperx Argument Error: s not > x");
-        cv=s/x; z=cv*cv; p=0.5*(1.0-Math.Sqrt((z-1.0)/(z+1.0)));
-        z=(UniformPositive()>p)? (x/(1.0-p)):(x/p);
-        return(-0.5*z*Math.Log(UniformPositive()));
-    }
-
-    private static double z2 = 0.0;
-    private static double Normal(double x, double s)
-    {
-        double v1,v2,w,z1; 
-        if (z2!=0.0)
-            {z1=z2; z2=0.0;}  /* use value from previous call */
-            else
-            {
-                do
-                {v1=2.0*UniformPositive()-1.0; v2=2.0*UniformPositive()-1.0; w=v1*v1+v2*v2;}
-                while (w>=1.0);
-                w=Math.Sqrt((-2.0*Math.Log(w))/w); z1=v1*w; z2=v2*w;
-            }
-        return(x+z1*s);
-    }
-
-    private static double Lognormal(double p, double u)
-    {
-        return Math.Exp(Normal(p,u));
-    }
-
-    /* The Weibull distribution has the form,
-
-    p(x) dx = (k/a) (x/a)^(k-1) exp(-(x/a)^k) dx
-
-    k = shape
-    a = landa = scale
-    */
-
-    private static double Weibull(double k, double a)
-    {
-        double x = UniformPositive();
-        double z = Math.Pow(-Math.Log(x), 1.0/k);
-        return(a * z);
-    }
-
-    /* The Gamma distribution 
-
-    k = shape
-    b = teta = scale
-
-    p(x) dx = {1 / \Gamma(k) b^a } x^{k-1} e^{-x/b} dx
-
-    for x>0.  If X and Y are independent gamma-distributed random
-    variables of order a1 and a2 with the same scale parameter b, then
-    X+Y has gamma distribution of order a1+a2.
-
-    The algorithms below are from Knuth, vol 2, 2nd ed, p. 129. */
-
-    private static double Gamma(double k, double b)
-    {
-        if (k<=0)
-            throw new ArgumentException("gamma Argument Error: k<=0");
+            throw new System.ArgumentException("erlang Argument Error: s > x");
         
-        uint na = (uint)Math.Floor(k);
+        z = x / s;
+        k = (int)(z * z);
+        z = 1.0f;
+        
+        for (i = 0; i < k; i++)
+            z *= UniformPositive();
+        
+        return -(x / k) * Mathf.Log(z);
+    }
+
+    private static float Hyperx(float x, float s)
+    {
+        float cv, z, p;
+        if (s <= x)
+            throw new System.ArgumentException("hyperx Argument Error: s not > x");
+        
+        cv = s / x;
+        z = cv * cv;
+        p = 0.5f * (1.0f - Mathf.Sqrt((z - 1.0f) / (z + 1.0f)));
+        z = (UniformPositive() > p) ? (x / (1.0f - p)) : (x / p);
+        
+        return -0.5f * z * Mathf.Log(UniformPositive());
+    }
+
+    private static float z2 = 0.0f;
+    
+    private static float Normal(float x, float s)
+    {
+        float v1, v2, w, z1;
+        
+        if (z2 != 0.0f)
+        {
+            z1 = z2;
+            z2 = 0.0f;
+        }
+        else
+        {
+            do
+            {
+                v1 = 2.0f * UniformPositive() - 1.0f;
+                v2 = 2.0f * UniformPositive() - 1.0f;
+                w = v1 * v1 + v2 * v2;
+            }
+            while (w >= 1.0f);
+            
+            w = Mathf.Sqrt((-2.0f * Mathf.Log(w)) / w);
+            z1 = v1 * w;
+            z2 = v2 * w;
+        }
+        
+        return x + z1 * s;
+    }
+
+    private static float Lognormal(float p, float u)
+    {
+        return Mathf.Exp(Normal(p, u));
+    }
+
+    private static float Weibull(float k, float a)
+    {
+        float x = UniformPositive();
+        float z = Mathf.Pow(-Mathf.Log(x), 1.0f / k);
+        return a * z;
+    }
+
+    private static float Gamma(float k, float b)
+    {
+        if (k <= 0)
+            throw new System.ArgumentException("gamma Argument Error: k<=0");
+        
+        uint na = (uint)Mathf.Floor(k);
 
         if (k == na)
         {
@@ -164,103 +156,105 @@ public static class RandomUtils
         }
         else
         {
-            return b * (GammaInt(na) + GammaFrac(k-na));
+            return b * (GammaInt(na) + GammaFrac(k - na));
         }
-
     }
 
-    static double GammaInt(uint a)
+    private static float GammaInt(uint a)
     {
         if (a < 12)
         {
             uint i;
-            double prod = 1;
+            float prod = 1.0f;
 
-            for (i = 0;i<a;i++)
+            for (i = 0; i < a; i++)
             {
                 prod *= UniformPositive();
             }
 
-            return -Math.Log(prod);
+            return -Mathf.Log(prod);
         }
         else
         {
-            return GammaLarge((double)a);
+            return GammaLarge((float)a);
         }
     }
 
-    static double GammaLarge(double a)
+    private static float GammaLarge(float a)
     {
-        double sqa,x,y,v;
-        sqa = Math.Sqrt(2*a-1);
+        float sqa, x, y, v;
+        sqa = Mathf.Sqrt(2.0f * a - 1.0f);
+        
         do
         {
             do
             {
-                y = Math.Tan(Math.PI*Uniform());
-                x = sqa*y+a-1;
+                y = Mathf.Tan(Mathf.PI * Uniform());
+                x = sqa * y + a - 1.0f;
             } 
-            while (x<=0);
-            v=Uniform();
+            while (x <= 0);
+            
+            v = Uniform();
         }
-        while (v > (1 + y * y) * Math.Exp ((a - 1) * Math.Log (x / (a - 1)) - sqa * y));
+        while (v > (1.0f + y * y) * Mathf.Exp((a - 1.0f) * Mathf.Log(x / (a - 1.0f)) - sqa * y));
     
         return x;
     }
 
-    static double GammaFrac(double a)
+    private static float GammaFrac(float a)
     {
-        double p, q, x, u, v;
-        p = Math.E / (a + Math.E);
+        float p, q, x, u, v;
+        float e = Mathf.Exp(1.0f);
+        p = e / (a + e);
+        
         do
-            {
+        {
             u = Uniform();
             v = UniformPositive();
 
             if (u < p)
-                {
-                x = Math.Exp ((1 / a) * Math.Log (v));
-                q = Math.Exp (-x);
-                }
-            else
-                {
-                x = 1 - Math.Log (v);
-                q = Math.Exp ((a - 1) * Math.Log (x));
-                }
+            {
+                x = Mathf.Exp((1.0f / a) * Mathf.Log(v));
+                q = Mathf.Exp(-x);
             }
+            else
+            {
+                x = 1.0f - Mathf.Log(v);
+                q = Mathf.Exp((a - 1.0f) * Mathf.Log(x));
+            }
+        }
         while (Uniform() >= q);
 
         return x;
     }
 
-    public static double GetDistribution(Distribution type, double a, double b)
+    public static float GetDistribution(Distribution type, float a, float b)
     {
-        if (_random == null)
-            throw new InvalidOperationException("Random seed is not set");
+        if (!_isInitialized)
+            throw new System.InvalidOperationException("Random seed is not set");
         
         switch(type)
         {
             case Distribution.Weibull:
-                return Weibull(a,b);
+                return Weibull(a, b);
             case Distribution.Gamma:
-                return Gamma(a,b);
+                return Gamma(a, b);
             case Distribution.Lognormal:
-                return Lognormal(a,b);
+                return Lognormal(a, b);
             case Distribution.Normal:
-                return Normal(a,b);
+                return Normal(a, b);
             case Distribution.Hyperx:
-                return Hyperx(a,b);
+                return Hyperx(a, b);
             case Distribution.Exponential:
                 return Exponential(a);
             case Distribution.One:
-                return 1;
+                return 1.0f;
             case Distribution.Zero:
-                return 0;
+                return 0.0f;
             case Distribution.Uniform:
-                return UniformMinMax(a,b);
+                return UniformMinMax(a, b);
             default:
-                throw new ArgumentException("Unknown distribution type");
+                throw new System.ArgumentException("Unknown distribution type");
         }
     }
-
 }

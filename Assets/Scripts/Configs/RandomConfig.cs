@@ -14,11 +14,11 @@ public class RandomConfig : ScriptableObject
 
     [Tooltip("A parameter for speed distribution")]
     [field: SerializeField]
-    public double PowerA {get; private set;} = 0.1734d;
+    public float PowerA {get; private set;} = 0.1734f;
 
     [Tooltip("B parameter for speed distribution")]
     [field: SerializeField]
-    public double PowerB {get; private set;} = -1d;
+    public float PowerB {get; private set;} = -1f;
 
     [Header("Host Availability")]
     [Tooltip("Availability fit distribution")]
@@ -27,11 +27,11 @@ public class RandomConfig : ScriptableObject
 
     [Tooltip("A parameter for availability distribution")]
     [field: SerializeField]
-    public double HostAvailabilityA {get; private set;} = 0.393d;
+    public float HostAvailabilityA {get; private set;} = 0.393f;
 
     [Tooltip("B parameter for availability distribution")]
     [field: SerializeField]
-    public double HostAvailabilityB {get; private set;} = 2.964d;
+    public float HostAvailabilityB {get; private set;} = 2.964f;
 
     [Header("Non-Availability")]
     [Tooltip("Non-availability fit distribution")]
@@ -40,11 +40,11 @@ public class RandomConfig : ScriptableObject
 
     [Tooltip("A parameter for non-availability distribution")]
     [field: SerializeField]
-    public double HostNonavailabilityA {get; private set;} = 2.444d;
+    public float HostNonavailabilityA {get; private set;} = 2.444f;
 
     [Tooltip("B parameter for non-availability distribution")]
     [field: SerializeField]
-    public double HostNonavailabilityB {get; private set;} = -0.586d;
+    public float HostNonavailabilityB {get; private set;} = -0.586f;
 
     [Header("CPU Availability")]
     [Tooltip("CPU availability fit distribution")]
@@ -53,11 +53,11 @@ public class RandomConfig : ScriptableObject
 
     [Tooltip("A parameter for X-availability distribution")]
     [field: SerializeField]
-    public double CpuAvailabilityA {get; private set;} = 0.393d;
+    public float CpuAvailabilityA {get; private set;} = 0.393f;
 
     [Tooltip("B parameter for X-availability distribution")]
     [field: SerializeField]
-    public double CpuAvailabilityB {get; private set;} = 2.964d;
+    public float CpuAvailabilityB {get; private set;} = 2.964f;
 
     [Header("CPU-Non-Availability")]
     [Tooltip("Non-availability fit distribution")]
@@ -66,9 +66,9 @@ public class RandomConfig : ScriptableObject
 
     [Tooltip("A parameter for Y-non-availability distribution")]
     [field: SerializeField]
-    public double CpuNonavailabilityA {get; private set;} = 2.844d;
+    public float CpuNonavailabilityA {get; private set;} = 2.844f;
 
     [Tooltip("B parameter for Y-non-availability distribution")]
     [field: SerializeField]
-    public double CpuNonavailabilityB {get; private set;} = -0.586d;
+    public float CpuNonavailabilityB {get; private set;} = -0.586f;
 }

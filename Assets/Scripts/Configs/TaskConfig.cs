@@ -7,16 +7,15 @@ public class TaskConfig : ScriptableObject
     public Distribution TaskPowerDistri {get; private set;} = Distribution.Normal;
 
     [field: SerializeField]
-    public double MinTaskGflops {get; private set;} = 0.5;
+    public float MinTaskGflops {get; private set;} = 0.5f;
 
     [field: SerializeField]
-    public double MaxTaskGflops {get; private set;} = 0.7;
+    public float MaxTaskGflops {get; private set;} = 0.7f;
 
     [field: SerializeField]
-    public double InputFileBytes {get; private set;}= 20d;
+    public float InputFileBytes {get; private set;}= 20;
 
     [field: SerializeField]
-    public double OutputFileBytes {get; private set;} = 20d;
-    
+    public float OutputFileBytes {get; private set;} = 20;
     
 }
