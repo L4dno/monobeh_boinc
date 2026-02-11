@@ -11,6 +11,7 @@ public class ProjectModel : BaseActor
     {
         _config = config;
         _hostId = hostId;
+        GenerateTasks();
     }
 
     protected override void Tick(int curTick)
@@ -46,9 +47,15 @@ public class ProjectModel : BaseActor
     }
     
     // generator
+    private int _createdTasksCount = 0;
     private void GenerateTasks()
     {
-        
+        for (;_taskDatabase.Count < _config.InitialTaskCount; _createdTasksCount++)
+        {
+            _taskDatabase.Add(_createdTasksCount, new TaskModel(_config.TaskConfig));
+            _tasksToSend.Enqueue(_createdTasksCount);
+        }
     }
+    
 
 }
