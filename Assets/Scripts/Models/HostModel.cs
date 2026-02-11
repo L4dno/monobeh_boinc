@@ -32,14 +32,14 @@ public class HostModel
         
     }
 
-    public double HostPower {get; private set;} // in gflops setting in constructor
+    public float HostPower {get; private set;} // in gflops setting in constructor
 
     public HostModel(GroupConfig group)
     {
         _config = group.RandomConfig;
         _state = HostState.Off;
         ChangeState();
-        double power = RandomUtils.GetDistribution(_config.HostPowerDistri, _config.PowerA, _config.PowerB);
+        float power = RandomUtils.GetDistribution(_config.HostPowerDistri, _config.PowerA, _config.PowerB);
         HostPower = System.Math.Clamp(power, group.MinSpeed, group.MaxSpeed);
     }
 

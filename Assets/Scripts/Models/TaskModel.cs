@@ -1,10 +1,9 @@
 using UnityEngine;
-using System;
 using System.Collections.Generic;
 
 
 
-public enum TaskState
+public enum TaskState : byte
 {
     Error, // когда превышается один из 3х лимитов и юнит не годен больше
     Valid, // кворум одинаковых успешных результатов
@@ -13,29 +12,50 @@ public enum TaskState
 
 public class TaskModel
 {
-    // поля параметров
-    private readonly TaskConfig _config;
+    private readonly float _taskGflops;
 
-    // задается в конструкторе
-    public Guid Id {get;}
+    private readonly float _taskSizeBytes;
 
-    public TaskState CurState {get; private set;}
+    private readonly List<int> _workunitDeadlineTicks;
+    
+    //public TaskState CurState {get; private set;}
+    public int CurCreatedWorkunits {get; set;} = 0;
+    public int CurSentWorkunits {get; set;} = 0;
+    public int CurWorkunitsReceived {get; set;} = 0;
+    public int CurValidWorkunits {get; set;} = 0;
+    public int CurSuccessWorkunits {get; set;} = 0;
+    public int CurErrorWorkunits {get; set;} = 0;
 
-    public int CurCreatedResults {get; private set;}
-    public int CurSentResults {get; private set;}
-    public int CurResultsReceived {get; private set;}
-    public int CurValidResults {get; private set;}
-    public int CurSuccessResults {get; private set;}
-    public int CurErrorResults {get; private set;}
-
-    // n input files {get;}
-    // List <str> input files {get;}
-
-
-    public TaskModel(TaskConfig config, int id)
+    public WorkunitData ReplicateTask(int deadlineTick, short parentId)
     {
-        //_config = config;
-        //Id = id;
-        CurState = TaskState.InProgress;
+        _workunitDeadlineTicks.Add(deadlineTick);
+        return new WorkunitData(
+            parentId,
+            _workunitDeadlineTicks.Count - 1,
+            deadlineTick,
+            _taskGflops,
+            _taskSizeBytes
+        );
+        // creatre wu
+    }
+    public TaskModel(TaskConfig config)
+    {
+        // generate normally between [l;r] from config
+        // must be clamped value
+
+        // ParamA = (l+r)/2
+        // ParamB = (r-l)/4
+
+        float max = config.MaxTaskGflops;
+        float min = config.MinTaskGflops;
+        float a = (max + min) / 2;
+        float b = (max - min) / 4;
+
+        float value = RandomUtils.GetDistribution(
+            config.TaskPowerDistri,a, b);
+        
+        _taskGflops = Mathf.Clamp(value, min, max);
+        _taskSizeBytes = config.InputFileBytes;
+        _workunitDeadlineTicks = new List<int>();
     }
 }

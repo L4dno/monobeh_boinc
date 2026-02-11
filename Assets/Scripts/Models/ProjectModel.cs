@@ -1,10 +1,17 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 public class ProjectModel : BaseActor
 {
     private readonly ProjectConfig _config;
 
     private readonly int _hostId;
+
+    public ProjectModel(ProjectConfig config, int hostId)
+    {
+        _config = config;
+        _hostId = hostId;
+    }
 
     protected override void Tick(int curTick)
     {
@@ -24,36 +31,24 @@ public class ProjectModel : BaseActor
         }
     }
 
-    // validator
-    private void ProcessReply(ClientReplyData message)
+    private readonly Dictionary<int, TaskModel> _taskDatabase 
+                        = new Dictionary<int, TaskModel>();
+    
+    private readonly Queue<int> _tasksToSend = new Queue<int>();
+    
+    public void ProcessReply(ClientReplyData reply)
     {
         
     }
-    // scheduler
-    //private readonly Queue<
-    private void ProcessRequest(ClientRequestData message)
+    public void ProcessRequest(ClientRequestData request)
     {
-        
+        // в конце метода перепроверь реплицируемость и помести в очередь
     }
+    
     // generator
     private void GenerateTasks()
     {
-        // generate normally between [l;r] from config
-        // must be clamped value
-
-        // ParamA = (l+r)/2
-        // ParamB = (r-l)/4
-    }
-    // assimilator
-    private void AssimilateTask()
-    {
         
-    }
-
-    public ProjectModel(ProjectConfig config, int hostId)
-    {
-        _config = config;
-        _hostId = hostId;
     }
 
 }
