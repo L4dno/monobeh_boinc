@@ -1,9 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 
-
-
-public enum TaskState : byte
+public enum TaskState
 {
     Error, // когда превышается один из 3х лимитов и юнит не годен больше
     Valid, // кворум одинаковых успешных результатов
@@ -14,7 +12,6 @@ public class TaskModel
 {
     private readonly float _taskGflops;
     private readonly int _taskId;
-
     private readonly float _taskSizeBytes;
 
     private readonly List<int> _workunitDeadlineTicks;
@@ -31,15 +28,18 @@ public class TaskModel
     {
         return curTick < _workunitDeadlineTicks[wuId];
     }
-
-    public WorkunitData ReplicateTask(int deadlineTick)
+    public void RegisterSentUnit(int wuId, int deadlineTick)
     {
-        _workunitDeadlineTicks.Add(deadlineTick);
-        // increment tasks sent
+        _workunitDeadlineTicks[wuId] = deadlineTick;
+    }
+
+    public WorkunitData ReplicateTask()
+    {
+        _workunitDeadlineTicks.Add(-1);
+        var wuId = _workunitDeadlineTicks.Count - 1;
         return new WorkunitData(
             _taskId,
-            _workunitDeadlineTicks.Count - 1,
-            deadlineTick,
+            wuId,
             _taskGflops,
             _taskSizeBytes
         );

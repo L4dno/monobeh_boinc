@@ -94,8 +94,9 @@ public class ProjectModel : BaseActor
                 task.CurErrorWorkunits < _config.MaxErrorWorkunits &&
                 task.CurCreatedWorkunits < _config.MaxCreatedWorkunits)
             {
-                _tasksToSend.Enqueue(reply.taskId);
+                _readyWork.Enqueue(task.ReplicateTask());
                 task.CurWorkunitsRecreated += 1;
+                task.CurCreatedWorkunits += 1;
                 // project recreated results +=1
             }
         }
@@ -106,7 +107,7 @@ public class ProjectModel : BaseActor
     private readonly Dictionary<int, TaskModel> _taskDatabase 
                         = new Dictionary<int, TaskModel>();
     
-    private readonly Queue<WorkunitData> _workToSend = new Queue<WorkunitData>();
+    private readonly Queue<WorkunitData> _readyWork = new Queue<WorkunitData>();
     
     public void ProcessRequest(ClientRequestData request)
     {
@@ -115,28 +116,28 @@ public class ProjectModel : BaseActor
         // или пока не сделает проверок, равное размеру очереди
 
         float requestedPayload = request.freeHostGflops * request.ticksInterval;
+        
         int examinedTasksCount = 0;
-        int maxExaminedTasks = _tasksToSend.Count;
+        int maxExaminedTasks = _readyWork.Count;
         HashSet<int> pickedTasksIds = new HashSet<int>();
-        Queue<int> duplicatedTasksIds = new Queue<int>();
 
         while (requestedPayload > 0 && examinedTasksCount < maxExaminedTasks)
         {
-            int cur = _tasksToSend.Dequeue();
+            var wu = _readyWork.Dequeue();
             examinedTasksCount++;
-            if (pickedTasks.Contains(wu.parentTaskId))
+            if (pickedTasksIds.Contains(wu.parentTaskId))
             {
-                duplicatedTasks.Enqueue(wu);
+                _readyWork.Enqueue(wu);
                 continue;
-            
+            }          
 
-            var task = _taskDatabase[taskInd];
+            var task = _taskDatabase[wu.parentTaskId];
 
             requestedPayload -= task._taskGflops;
-            SimulationManager.Istance.actors[request.actorSender].Push(
-                task.ReplicateTask(curTick + _config.DelayBound)
+            SimulationManager.Instance.actors[request.actorSender].Push(
+                new ServerReplyData(wu, curTick + _config.DelayBound)
             );
-            task.CurCreatedWorkunits += 1;
+            task.RegisterSentUnit(wu.workunitId, curTick + _config.DelayBound);
             // если 
             // if (task.CurCreatedWorkunits < _config.TargetCountOfWorkunits)
             // {
@@ -162,7 +163,7 @@ public class ProjectModel : BaseActor
             //_tasksToSend.Enqueue(_createdTasksCount);
             while (task.CurCreatedWorkunits < _config.TargetCountOfWorkunits)
             {
-                _workToSend.Enqueue(task.ReplicateTask());
+                _readyWork.Enqueue(task.ReplicateTask());
                 task.CurCreatedWorkunits += 1;
             }
         }
