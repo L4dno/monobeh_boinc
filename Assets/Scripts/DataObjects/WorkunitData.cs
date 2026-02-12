@@ -1,20 +1,16 @@
 
 public readonly struct WorkunitData
 {
-    public readonly short parentTaskId;
-    public readonly short workunitId;
-
-    public readonly int deadlineTick;
-
+    public readonly int parentTaskId;
+    public readonly int workunitId;
     public readonly float durationInFlops;
     public readonly float byteSize;
 
-    public WorkunitData(int parentTaskId, int workunitId, int deadlineTick, 
+    public WorkunitData(int parentTaskId, int workunitId, 
                         float durationInFlops, float byteSize)
     {
-        this.parentTaskId = (short)parentTaskId;
-        this.workunitId = (short)workunitId;
-        this.deadlineTick = deadlineTick;
+        this.parentTaskId = parentTaskId;
+        this.workunitId = workunitId;
         this.durationInFlops = durationInFlops;
         this.byteSize = byteSize;
     }

@@ -20,17 +20,17 @@ public class ProjectConfig : ScriptableObject
     public int InitialTaskCount {get; private set;} = 3000;
 
     [field: SerializeField]
-    public int TargetNumberOfResults {get; private set;} = 10;
+    public int TargetCountOfWorkunits {get; private set;} = 10;
 
     [field: SerializeField]
-    public int MaxErrorResults {get; private set;} = 10;
+    public int MaxErrorWorkunits {get; private set;} = 10;
 
     [field: SerializeField]
-    public int MaxTotalResults {get; private set;} = 10;
+    public int MaxCreatedWorkunits {get; private set;} = 10;
 
 
     [field: SerializeField]
-    public int MaxSuccessResults {get; private set;} = 10;
+    public int MaxSuccessWorkunits {get; private set;} = 10;
 
     [field: SerializeField]
     public int SuccessPercentage {get; private set;} = 95;

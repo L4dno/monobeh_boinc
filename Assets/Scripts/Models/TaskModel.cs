@@ -13,24 +13,31 @@ public enum TaskState : byte
 public class TaskModel
 {
     private readonly float _taskGflops;
+    private readonly int _taskId;
 
     private readonly float _taskSizeBytes;
 
     private readonly List<int> _workunitDeadlineTicks;
     
-    //public TaskState CurState {get; private set;}
+    public TaskState CurState {get; set;}
     public int CurCreatedWorkunits {get; set;} = 0;
-    public int CurSentWorkunits {get; set;} = 0;
     public int CurWorkunitsReceived {get; set;} = 0;
     public int CurValidWorkunits {get; set;} = 0;
     public int CurSuccessWorkunits {get; set;} = 0;
     public int CurErrorWorkunits {get; set;} = 0;
+    public int CurWorkunitsRecreated {get; set;} = 0;
 
-    public WorkunitData ReplicateTask(int deadlineTick, short parentId)
+    public bool isWorkunitInTime(int curTick, int wuId)
+    {
+        return curTick < _workunitDeadlineTicks[wuId];
+    }
+
+    public WorkunitData ReplicateTask(int deadlineTick)
     {
         _workunitDeadlineTicks.Add(deadlineTick);
+        // increment tasks sent
         return new WorkunitData(
-            parentId,
+            _taskId,
             _workunitDeadlineTicks.Count - 1,
             deadlineTick,
             _taskGflops,
@@ -38,7 +45,7 @@ public class TaskModel
         );
         // creatre wu
     }
-    public TaskModel(TaskConfig config)
+    public TaskModel(TaskConfig config, int taskId)
     {
         // generate normally between [l;r] from config
         // must be clamped value
@@ -57,5 +64,6 @@ public class TaskModel
         _taskGflops = Mathf.Clamp(value, min, max);
         _taskSizeBytes = config.InputFileBytes;
         _workunitDeadlineTicks = new List<int>();
+        _taskId = taskId;
     }
 }

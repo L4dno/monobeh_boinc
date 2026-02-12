@@ -19,7 +19,7 @@ public class SimulationManager : MonoBehaviour
 
     public static SimulationManager Instance {get; private set;}
 
-    private BaseActor[] _actors;
+    [HideInInspector] public BaseActor[] actors;
     [HideInInspector] public HostModel[] hosts;
 
     private int _hostId = 0;
@@ -33,7 +33,7 @@ public class SimulationManager : MonoBehaviour
         var group = _simConfig.GroupConfig;
         for (int i = 0;i<group.NumberOfClients;i++)
         {
-            _actors[_actorId++] = new ClientModel(group, _hostId);
+            actors[_actorId++] = new ClientModel(group, _hostId);
             hosts[_hostId++] = new HostModel(group);
         }
     }
@@ -42,11 +42,11 @@ public class SimulationManager : MonoBehaviour
     {
         var project = _simConfig.ProjectConfig;
         
-        _actors[_actorId++] = new ProjectModel(project, _hostId);
+        actors[_actorId++] = new ProjectModel(project, _hostId);
         hosts[_hostId++] = new HostModel(project);
-        // _actors[_actorId++] = new ValidatorModel(_hostId);
-        // _actors[_actorId++] = new AssimilatorModel(_hostId);
-        // _actors[_actorId++] = new SchedulerModel(_hostId);
+        // actors[_actorId++] = new ValidatorModel(_hostId);
+        // actors[_actorId++] = new AssimilatorModel(_hostId);
+        // actors[_actorId++] = new SchedulerModel(_hostId);
     }
 
     
@@ -80,7 +80,7 @@ public class SimulationManager : MonoBehaviour
         }
         
         _maxSimulationTime = _simConfig.SimLength * 3600;
-        _actors = new BaseActor[_simConfig.NumberOfProjects +
+        actors = new BaseActor[_simConfig.NumberOfProjects +
                                _simConfig.GroupConfig.NumberOfClients];
         hosts = new HostModel[_simConfig.NumberOfProjects +
                                _simConfig.GroupConfig.NumberOfClients];

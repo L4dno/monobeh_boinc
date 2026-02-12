@@ -32,18 +32,123 @@ public class ProjectModel : BaseActor
         }
     }
 
+    public void ProcessReply(ClientReplyData reply)
+    {
+
+        // increase counters
+        // check whether need to switch state
+        // if in progress and has erroed result create new wu
+
+        var task = _taskDatabase[reply.taskId];
+        task.CurWorkunitsReceived += 1;
+
+        if (!task.isWorkunitInTime(curTick, reply.workunitId))
+        {
+            // reply == Fail
+            task.CurErrorWorkunits += 1;
+            // project delay results +=1
+        }
+        else if (reply.status == WorkunitStatus.Success)
+        {
+            task.CurSuccessWorkunits +=1;
+            // project success results +=1
+
+            if (reply.value == WorkunitValue.Valid)
+            {
+                task.CurValidWorkunits += 1;
+
+                // set credits
+            }
+        }
+        else
+        {
+            // error wu
+            task.CurErrorWorkunits += 1;
+            // project errored results +=1
+        }
+
+        // project.nresultsanalyzed++;
+
+        if (task.CurState == TaskState.InProgress)
+        {
+            if (task.CurValidWorkunits >= _config.MinQuorum)
+            {
+                task.CurState = TaskState.Valid;
+                // project valid wu += task.validwu
+                // project valid tasks += 1
+            }
+            else if (task.CurCreatedWorkunits >= _config.MaxCreatedWorkunits ||
+                     task.CurErrorWorkunits >= _config.MaxErrorWorkunits ||
+                     task.CurSuccessWorkunits >= _config.MaxSuccessWorkunits)
+            {
+                task.CurState = TaskState.Error;
+                // project error tasks +=1
+            }
+        }
+        // can project valid and credits increase from additional valids wu
+
+        if (reply.status == WorkunitStatus.Fail)
+        {
+            if (task.CurState == TaskState.InProgress &&
+                task.CurSuccessWorkunits < _config.MaxSuccessWorkunits &&
+                task.CurErrorWorkunits < _config.MaxErrorWorkunits &&
+                task.CurCreatedWorkunits < _config.MaxCreatedWorkunits)
+            {
+                _tasksToSend.Enqueue(reply.taskId);
+                task.CurWorkunitsRecreated += 1;
+                // project recreated results +=1
+            }
+        }
+
+
+    }
+
     private readonly Dictionary<int, TaskModel> _taskDatabase 
                         = new Dictionary<int, TaskModel>();
     
-    private readonly Queue<int> _tasksToSend = new Queue<int>();
+    private readonly Queue<WorkunitData> _workToSend = new Queue<WorkunitData>();
     
-    public void ProcessReply(ClientReplyData reply)
-    {
-        
-    }
     public void ProcessRequest(ClientRequestData request)
     {
-        // в конце метода перепроверь реплицируемость и помести в очередь
+        // выбирает задачу по алгоритму
+        // пока не наберет достаточную пачку задачи
+        // или пока не сделает проверок, равное размеру очереди
+
+        float requestedPayload = request.freeHostGflops * request.ticksInterval;
+        int examinedTasksCount = 0;
+        int maxExaminedTasks = _tasksToSend.Count;
+        HashSet<int> pickedTasksIds = new HashSet<int>();
+        Queue<int> duplicatedTasksIds = new Queue<int>();
+
+        while (requestedPayload > 0 && examinedTasksCount < maxExaminedTasks)
+        {
+            int cur = _tasksToSend.Dequeue();
+            examinedTasksCount++;
+            if (pickedTasks.Contains(wu.parentTaskId))
+            {
+                duplicatedTasks.Enqueue(wu);
+                continue;
+            
+
+            var task = _taskDatabase[taskInd];
+
+            requestedPayload -= task._taskGflops;
+            SimulationManager.Istance.actors[request.actorSender].Push(
+                task.ReplicateTask(curTick + _config.DelayBound)
+            );
+            task.CurCreatedWorkunits += 1;
+            // если 
+            // if (task.CurCreatedWorkunits < _config.TargetCountOfWorkunits)
+            // {
+            //     _tasksToSend.Enqueue(taskInd);
+            // }
+            // else if (task.CurWorkunitsToResend > 0)
+            // {
+            //     _tasksToSend.Enqueue(taskInd);
+            //     task.CurWorkunitsToResend -= 1;
+            // }
+        }
+
     }
     
     // generator
@@ -52,8 +157,14 @@ public class ProjectModel : BaseActor
     {
         for (;_taskDatabase.Count < _config.InitialTaskCount; _createdTasksCount++)
         {
-            _taskDatabase.Add(_createdTasksCount, new TaskModel(_config.TaskConfig));
-            _tasksToSend.Enqueue(_createdTasksCount);
+            var task = new TaskModel(_config.TaskConfig, _createdTasksCount);
+            _taskDatabase.Add(_createdTasksCount, task);
+            //_tasksToSend.Enqueue(_createdTasksCount);
+            while (task.CurCreatedWorkunits < _config.TargetCountOfWorkunits)
+            {
+                _workToSend.Enqueue(task.ReplicateTask());
+                task.CurCreatedWorkunits += 1;
+            }
         }
     }
     
