@@ -14,16 +14,14 @@ public class ClientModel : BaseActor
     // ссылка на структуру базовых настроек
     private readonly GroupConfig _config;
 
+    const int SERVER_ACTOR = 0;
+
     private readonly int _hostId;
 
     private ClientState _curState;
-    
 
-    private readonly Queue<object> _computeQueue = new Queue<object>();
-    private readonly Queue<object> _uploadQueue = new Queue<object>();
-
-    private Coroutine _networking;
-    private Coroutine _executing;
+    private CoroutineHandler _networking;
+    private CoroutineHandler _executing;
 
     private int _tickToConnect;
 
@@ -79,32 +77,54 @@ public class ClientModel : BaseActor
         
     }
 
+    public Queue<ServerReplyData> workToCompute = new Queue<ServerReplyData>();
+    public float workAmountFlops = 0;
+
+    public Queue<ClientReplyData> workToUpload = new Queue<ClientReplyData>();
+
     private void HandleIdle()
     {
-        if (_networking == null)
+        // проверить отсылку
+        // проверить докачку
+        // отправить запрос (поместить в очередь на отсылку)
+        if (_networking != null)
         {
-            _networking = SimulationManager.StartRoutine(NetworkRoutine());
+            return;
         }
+        if (workToUpload.Count > 0)
+        {
+            var reply = workToUpload.Peek();
+            int ticksToSend = reply.fileSize / _config.ServerBandwidth + _config.ServerLatency;
+            _networking = SimulationManager.StartRoutine(
+                NetworkRoutine(Mathf.Celling(ticksToSend))
+                );
+        }
+
+
+        // if (_networking == null)
+        // {
+        //     _networking = SimulationManager.StartRoutine(NetworkRoutine());
+        // }
     }
     private void HandleBusy()
     {
+        // server reply -> client reply
         if (_executing == null)
         {
             _executing = SimulationManager.StartRoutine(ExecuteRoutine());
         }
     }
 
-    private IEnumerator NetworkRoutine()
+    private IEnumerator NetworkRoutine(IMessage message)
     {
         // обнули ссылку в конце
         yield return null;
-        _networking = null;
+        // нужен флаг завершенности
     }
 
-    private IEnumerator ExecuteRoutine()
+    private IEnumerator ExecuteRoutine(IMessage message)
     {
         yield return null;
-        _executing = null;
     }
     const int MIN_WARMUP_TIME = 0;
     const int MAX_WARMUP_TIME = 3600;
