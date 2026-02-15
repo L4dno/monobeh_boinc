@@ -11,7 +11,7 @@ public enum WorkunitVerdict : byte
 }
 
 
-public readonly struct ClientReplyData : IMessage
+public class ClientReplyData : IMessage
 {
     public readonly WorkunitStatus status;
     public readonly WorkunitVerdict verdict;

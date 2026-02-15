@@ -14,8 +14,8 @@ public class ProjectModel : BaseActor
         //GenerateTasks();
     }
 
-    protected override void Tick(int curTick)
-    {
+    //protected override void Tick(int curTick)
+   // {
         //Debug.Log($"Project called on host {_hostId}");
         // while (_mailBox.Count > 0)
         // {
@@ -30,7 +30,7 @@ public class ProjectModel : BaseActor
         //             break;
         //     }
         // }
-    }
+    //}
 
     // public void ProcessReply(ClientReplyData reply)
     // {

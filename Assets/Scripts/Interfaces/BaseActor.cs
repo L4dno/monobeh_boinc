@@ -1,6 +1,5 @@
 using UnityEngine;
 using System.Collections.Generic;
-using System;
 
 // сущность живущая во времени симуляции. Каждую секунду проверяет состояние.
 public abstract class BaseActor
@@ -10,11 +9,5 @@ public abstract class BaseActor
     // родительский класс для сервера и клиента
     // так же отмечает себя как активного на родительском хосте
     public void Push(object message) => _mailBox.Enqueue(message);
-
-    public BaseActor()
-    {
-        TimeTickSystem.OnTick += Tick;
-    }
-    protected abstract void Tick(int curTick);
 
 }

@@ -16,4 +16,9 @@ public class SimConfig : ScriptableObject
     [field: SerializeField]
     public GroupConfig GroupConfig {get; private set;}
 
+    [field: SerializeField]
+    [Tooltip("Seed for deterministic run")]
+    public int DeterministicSeed {get; private set;} = 6523446;
+
+
 }

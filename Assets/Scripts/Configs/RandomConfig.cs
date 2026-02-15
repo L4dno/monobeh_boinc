@@ -3,10 +3,7 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "RandomConfig", menuName = "Scriptable Objects/RandomConfig")]
 public class RandomConfig : ScriptableObject
 {
-    [field: SerializeField]
-    [Tooltip("Seed for deterministic run")]
-    public int DeterministicSeed {get; private set;} = 6523446;
-
+    
     [Header("Host Parameters")]
     [Tooltip("Speed fit distribution")]
     [field: SerializeField]

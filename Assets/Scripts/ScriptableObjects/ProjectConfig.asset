@@ -12,12 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c77cc487d7eb39a4c8f172ae5b52e76e, type: 3}
   m_Name: ProjectConfig
   m_EditorClassIdentifier: 
-  <ServerPower>k__BackingField: 0
+  <ServerPowerGflops>k__BackingField: 10
   <DelayBound>k__BackingField: 20
   <MinQuorum>k__BackingField: 2
-  <TargetNumberOfResults>k__BackingField: 10
-  <MaxErrorResults>k__BackingField: 10
-  <MaxTotalResults>k__BackingField: 10
-  <MaxSuccessResults>k__BackingField: 10
+  <InitialTaskCount>k__BackingField: 3000
+  <TargetCountOfWorkunits>k__BackingField: 10
+  <MaxErrorWorkunits>k__BackingField: 10
+  <MaxCreatedWorkunits>k__BackingField: 10
+  <MaxSuccessWorkunits>k__BackingField: 10
   <SuccessPercentage>k__BackingField: 95
   <CanonicalPercentage>k__BackingField: 95

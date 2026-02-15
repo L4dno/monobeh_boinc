@@ -27,11 +27,6 @@ public class ClientModel : BaseActor
 
     private int _tickToConnect;
 
-    protected override void Tick(int curTick)
-    {
-       
-    }
-
 
     // protected override void Tick(int curTick)
     // {

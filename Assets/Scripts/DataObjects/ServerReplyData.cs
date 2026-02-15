@@ -1,4 +1,4 @@
-public readonly struct ServerReplyData : IMessage
+public class ServerReplyData : IMessage
 {
     public readonly WorkunitData workunit;
     public readonly int deadlineTick;

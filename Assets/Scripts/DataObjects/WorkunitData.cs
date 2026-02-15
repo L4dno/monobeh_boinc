@@ -1,5 +1,5 @@
 
-public readonly struct WorkunitData
+public class WorkunitData
 {
     public readonly int parentTaskId;
     public readonly int workunitId;
