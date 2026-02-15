@@ -5,7 +5,7 @@ public class TimeTickSystem : MonoBehaviour
 {
     public static TimeTickSystem Instance { get; private set; }
     public static event Action<int> OnTick;
-    private const float TICK_DURATION = 0.001f; // 200 ms
+    private const float TICK_DURATION = 0.002f; // ms
     public int CurTick {get; private set;} = 0;
     private float _tickTimer = 0;
 
@@ -28,7 +28,6 @@ public class TimeTickSystem : MonoBehaviour
             CurTick++;
             
             OnTick?.Invoke(CurTick);
-            //UnityEngine.Debug.Log($"Tick {CurTick}");
         }
     }
 

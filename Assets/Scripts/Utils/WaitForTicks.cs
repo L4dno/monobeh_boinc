@@ -1,5 +1,7 @@
 using UnityEngine;
 
+// перегрузка инструкции для синхронизации с таймером на тиках
+
 public class WaitForTicks : CustomYieldInstruction
 {
     // скорость сети и хоста константны

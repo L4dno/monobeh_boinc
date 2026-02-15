@@ -11,6 +11,8 @@ public enum ClientState
 
 public class ClientModel : BaseActor
 {
+
+        const int RANDOM_TO_TICKS_FACTOR = 3600;
     // ссылка на структуру базовых настроек
     private readonly GroupConfig _config;
 
@@ -20,112 +22,119 @@ public class ClientModel : BaseActor
 
     private ClientState _curState;
 
-    private CoroutineHandler _networking;
-    private CoroutineHandler _executing;
+    //private CoroutineHandler _networking;
+    //private CoroutineHandler _executing;
 
     private int _tickToConnect;
 
     protected override void Tick(int curTick)
     {
-        
-        if (SimulationManager.Instance.hosts[_hostId].State==HostState.Off &&
-            _curState != ClientState.Suspended)
-        {
-            // first second of suspend
-            _curState = ClientState.Suspended;
-            Debug.Log($"Client {_hostId} suspended on tick {curTick}");
-
-            if (_networking != null)
-            {
-                SimulationManager.StopRoutine(_networking);
-                _networking = null;
-            }
-            if (_executing != null)
-            {
-                SimulationManager.StopRoutine(_executing);
-                _executing = null;
-            }
-        }
-        
-        if (SimulationManager.Instance.hosts[_hostId].State==HostState.On) {
-            
-            if (_computeQueue.Count > 0 && _curState != ClientState.Busy)
-            {
-                _curState = ClientState.Busy;
-                Debug.Log($"Client {_hostId} busy on tick {curTick}");
-            }
-            else if (_curState != ClientState.Idle)
-            {
-                _curState = ClientState.Idle;
-                Debug.Log($"Client {_hostId} idle on tick {curTick}");
-            }
-
-        }
-
-        switch (_curState)
-        {
-            case ClientState.Suspended:
-                break;
-            case ClientState.Busy:
-                HandleBusy();
-                HandleIdle();
-                break;
-            case ClientState.Idle:
-                HandleIdle();
-                break;
-        }
-        
+       
     }
+
+
+    // protected override void Tick(int curTick)
+    // {
+        
+    //     if (SimulationManager.Instance.hosts[_hostId].State==HostState.Off &&
+    //         _curState != ClientState.Suspended)
+    //     {
+    //         // first second of suspend
+    //         _curState = ClientState.Suspended;
+    //         Debug.Log($"Client {_hostId} suspended on tick {curTick}");
+
+    //         if (_networking != null)
+    //         {
+    //             SimulationManager.StopRoutine(_networking);
+    //             _networking = null;
+    //         }
+    //         if (_executing != null)
+    //         {
+    //             SimulationManager.StopRoutine(_executing);
+    //             _executing = null;
+    //         }
+    //     }
+        
+    //     if (SimulationManager.Instance.hosts[_hostId].State==HostState.On) {
+            
+    //         if (_computeQueue.Count > 0 && _curState != ClientState.Busy)
+    //         {
+    //             _curState = ClientState.Busy;
+    //             Debug.Log($"Client {_hostId} busy on tick {curTick}");
+    //         }
+    //         else if (_curState != ClientState.Idle)
+    //         {
+    //             _curState = ClientState.Idle;
+    //             Debug.Log($"Client {_hostId} idle on tick {curTick}");
+    //         }
+
+    //     }
+
+    //     switch (_curState)
+    //     {
+    //         case ClientState.Suspended:
+    //             break;
+    //         case ClientState.Busy:
+    //             HandleBusy();
+    //             HandleIdle();
+    //             break;
+    //         case ClientState.Idle:
+    //             HandleIdle();
+    //             break;
+    //     }
+        
+    // }
 
     public Queue<ServerReplyData> workToCompute = new Queue<ServerReplyData>();
     public float workAmountFlops = 0;
 
     public Queue<ClientReplyData> workToUpload = new Queue<ClientReplyData>();
 
-    private void HandleIdle()
-    {
-        // проверить отсылку
-        // проверить докачку
-        // отправить запрос (поместить в очередь на отсылку)
-        if (_networking != null)
-        {
-            return;
-        }
-        if (workToUpload.Count > 0)
-        {
-            var reply = workToUpload.Peek();
-            int ticksToSend = reply.fileSize / _config.ServerBandwidth + _config.ServerLatency;
-            _networking = SimulationManager.StartRoutine(
-                NetworkRoutine(Mathf.Celling(ticksToSend))
-                );
-        }
+    // private void HandleIdle()
+    // {
+    //     // проверить отсылку
+    //     // проверить докачку
+    //     // отправить запрос (поместить в очередь на отсылку)
+    //     if (_networking != null)
+    //     {
+    //         return;
+    //     }
+    //     if (workToUpload.Count > 0)
+    //     {
+    //         var reply = workToUpload.Peek();
+    //         int ticksToSend = reply.fileSize / _config.ServerBandwidth + _config.ServerLatency;
+    //         _networking = SimulationManager.StartRoutine(
+    //             NetworkRoutine(Mathf.Celling(ticksToSend))
+    //             );
+    //     }
 
 
-        // if (_networking == null)
-        // {
-        //     _networking = SimulationManager.StartRoutine(NetworkRoutine());
-        // }
-    }
-    private void HandleBusy()
-    {
-        // server reply -> client reply
-        if (_executing == null)
-        {
-            _executing = SimulationManager.StartRoutine(ExecuteRoutine());
-        }
-    }
+    //     // if (_networking == null)
+    //     // {
+    //     //     _networking = SimulationManager.StartRoutine(NetworkRoutine());
+    //     // }
+    // }
+    // private void HandleBusy()
+    // {
+    //     // server reply -> client reply
+    //     if (_executing == null)
+    //     {
+    //         _executing = SimulationManager.StartRoutine(ExecuteRoutine());
+    //     }
+    // }
 
-    private IEnumerator NetworkRoutine(IMessage message)
-    {
-        // обнули ссылку в конце
-        yield return null;
-        // нужен флаг завершенности
-    }
+    // private IEnumerator NetworkRoutine(IMessage message)
+    // {
+    //     // обнули ссылку в конце
+    //     yield return null;
+    //     // нужен флаг завершенности
+    // }
 
-    private IEnumerator ExecuteRoutine(IMessage message)
-    {
-        yield return null;
-    }
+    // private IEnumerator ExecuteRoutine(IMessage message)
+    // {
+    //     yield return null;
+    // }
+    
     const int MIN_WARMUP_TIME = 0;
     const int MAX_WARMUP_TIME = 3600;
 

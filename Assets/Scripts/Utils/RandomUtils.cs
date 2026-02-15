@@ -75,7 +75,7 @@ public static class RandomUtils
             throw new System.ArgumentException("erlang Argument Error: s > x");
         
         z = x / s;
-        k = (int)(z * z);
+        k = (int)z * (int)z;
         z = 1.0f;
         
         for (i = 0; i < k; i++)
