@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections;
 using System.Collections.Generic;
 
 // сущность живущая во времени симуляции. Каждую секунду проверяет состояние.
@@ -9,5 +10,10 @@ public abstract class BaseActor
     // родительский класс для сервера и клиента
     // так же отмечает себя как активного на родительском хосте
     public void Push(object message) => _mailBox.Enqueue(message);
+
+    protected int _actorId;
+    protected int _hostId;
+
+    public abstract IEnumerator MainLoop(int hostId);
 
 }

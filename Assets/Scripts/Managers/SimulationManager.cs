@@ -21,8 +21,11 @@ public class SimulationManager : MonoBehaviour
     private void Start()
     {
         // start all actors main loop coroutine
-
-        _maxSimulationTime = _config.SimLength * 3600;
+        for (int i = 0; i < actors.Length; i++)
+        {
+            StartCoroutine(actors[i].MainLoop(i));
+        }
+        
     }
 
     private int _maxSimulationTime;
@@ -67,7 +70,18 @@ public class SimulationManager : MonoBehaviour
 
     void CreateDeployment()
     {
-        
+        int totalActors = _config.NumberOfProjects + _config.GroupConfig.NumberOfClients;
+        actors = new BaseActor[totalActors];
+        int actorId = 0;
+        for (; actorId < _config.NumberOfProjects; actorId++)
+        {
+            actors[actorId] = new ProjectModel(_config.ProjectConfig, actorId);
+        }
+        for (;actorId < totalActors; actorId++)
+        {
+            actors[actorId] = new ClientModel(_config.GroupConfig, actorId);
+        }
+
     }
 
     void Awake()
@@ -85,7 +99,7 @@ public class SimulationManager : MonoBehaviour
         TimeTickSystem.OnTick += Tick;
 
         RandomUtils.SetSeed(_config.DeterministicSeed);
-
+        _maxSimulationTime = _config.SimLength * 3600;
         CreatePlatform();
         CreateDeployment();
 

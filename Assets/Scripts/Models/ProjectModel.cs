@@ -1,17 +1,24 @@
 using UnityEngine;
+using System.Collections;
 using System.Collections.Generic;
 
 public class ProjectModel : BaseActor
 {
     private readonly ProjectConfig _config;
 
-    private readonly int _hostId;
-
-    public ProjectModel(ProjectConfig config, int hostId)
+    public ProjectModel(ProjectConfig config, int actorId)
     {
         _config = config;
-        _hostId = hostId;
+        _actorId = actorId;
+        Debug.Log($"Project {_actorId} created");
         //GenerateTasks();
+    }
+
+    public override IEnumerator MainLoop(int hostId)
+    {
+        _hostId = hostId;
+        Debug.Log($"Project {_actorId} main loop started on host {hostId}");
+        yield return null;
     }
 
     //protected override void Tick(int curTick)

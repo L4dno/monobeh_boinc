@@ -12,13 +12,11 @@ public enum ClientState
 public class ClientModel : BaseActor
 {
 
-        const int RANDOM_TO_TICKS_FACTOR = 3600;
+    const int RANDOM_TO_TICKS_FACTOR = 3600;
     // ссылка на структуру базовых настроек
     private readonly GroupConfig _config;
 
-    const int SERVER_ACTOR = 0;
-
-    private readonly int _hostId;
+    const int PROJECT_ACTOR = 0;
 
     private ClientState _curState;
 
@@ -26,6 +24,13 @@ public class ClientModel : BaseActor
     //private CoroutineHandler _executing;
 
     private int _tickToConnect;
+
+    public override IEnumerator MainLoop(int hostId)
+    {
+        _hostId = hostId;
+        Debug.Log($"Client {_actorId} main loop started on host {hostId}");
+        yield return null;
+    }
 
 
     // protected override void Tick(int curTick)
@@ -133,15 +138,16 @@ public class ClientModel : BaseActor
     const int MIN_WARMUP_TIME = 0;
     const int MAX_WARMUP_TIME = 3600;
 
-    public ClientModel(GroupConfig config, int hostId) : base()
+    public ClientModel(GroupConfig config, int actorId)
     {
         _config = config;
-        _hostId = hostId;
+        _actorId = actorId;
+        Debug.Log($"Client {_actorId} created");
 
-        _curState = ClientState.Idle;
-        _tickToConnect = (int)RandomUtils.GetDistribution(Distribution.Uniform, 
-                                                        MIN_WARMUP_TIME,
-                                                        MAX_WARMUP_TIME);
+        // _curState = ClientState.Idle;
+        // _tickToConnect = (int)RandomUtils.GetDistribution(Distribution.Uniform, 
+        //                                                 MIN_WARMUP_TIME,
+        //                                                 MAX_WARMUP_TIME);
 
     }
 }
