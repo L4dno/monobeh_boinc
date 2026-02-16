@@ -36,6 +36,7 @@ public class SimulationManager : MonoBehaviour
         if (curTick == _maxSimulationTime)
             {
                 // print statistics
+                StopAllCoroutines();
                 QuitGame();
             }
     }

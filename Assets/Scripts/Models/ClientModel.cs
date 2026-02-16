@@ -11,24 +11,55 @@ public enum ClientState
 
 public class ClientModel : BaseActor
 {
-
     const int RANDOM_TO_TICKS_FACTOR = 3600;
+    const int PROJECT_ACTOR = 0;
     // ссылка на структуру базовых настроек
     private readonly GroupConfig _config;
 
-    const int PROJECT_ACTOR = 0;
-
     private ClientState _curState;
-
-    //private CoroutineHandler _networking;
-    //private CoroutineHandler _executing;
-
-    private int _tickToConnect;
 
     public override IEnumerator MainLoop(int hostId)
     {
         _hostId = hostId;
         Debug.Log($"Client {_actorId} main loop started on host {hostId}");
+
+        int warmup =  (int)RandomUtils.GetDistribution(Distribution.Uniform, 
+                                                       MIN_WARMUP_TIME,
+                                                         MAX_WARMUP_TIME);
+        yield return WaitForTicks(warmup);
+
+        SimulationManager.Instance.StartCoroutine(FetchWork());
+        SimulationManager.Instance.StartCoroutine(ExecuteWork());
+
+        while (true)
+        {
+
+            if (_curState == ClientState.Suspended)
+            {
+                // calc availability time
+                // now not suspended
+                yield return WaitForTicks();
+            }
+            else
+            {
+                // calc unavailability time
+                // switch state
+                yield return WaitForTicks();
+            }
+            
+        }
+    }
+
+    private IEnumerator FetchWork()
+    {
+        // засыпает каждые connection interval
+        // после выполнения рутин по отправке синхронно
+        yield return null;
+    }
+    private IEnumerator ExecuteWork()
+    {
+        // получает ссылку на инстанс проекта на клиенте
+        // если нет работы то засыпает пока не появится
         yield return null;
     }
 
@@ -144,10 +175,7 @@ public class ClientModel : BaseActor
         _actorId = actorId;
         Debug.Log($"Client {_actorId} created");
 
-        // _curState = ClientState.Idle;
-        // _tickToConnect = (int)RandomUtils.GetDistribution(Distribution.Uniform, 
-        //                                                 MIN_WARMUP_TIME,
-        //                                                 MAX_WARMUP_TIME);
+        _curState = ClientState.Idle;
 
     }
 }

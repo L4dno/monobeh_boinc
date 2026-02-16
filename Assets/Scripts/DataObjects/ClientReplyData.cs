@@ -11,8 +11,9 @@ public enum WorkunitVerdict : byte
 }
 
 
-public class ClientReplyData : IMessage
+public class ClientReplyData 
 {
+
     public readonly WorkunitStatus status;
     public readonly WorkunitVerdict verdict;
     public readonly int taskId;

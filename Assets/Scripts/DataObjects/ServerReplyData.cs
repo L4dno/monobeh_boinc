@@ -1,5 +1,6 @@
-public class ServerReplyData : IMessage
+public class ServerReplyData
 {
+
     public readonly WorkunitData workunit;
     public readonly int deadlineTick;
 
