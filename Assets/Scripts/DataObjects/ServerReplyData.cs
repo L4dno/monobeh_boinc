@@ -1,12 +1,17 @@
-public class ServerReplyData
+using System.Collections.Generic;
+using System.Linq;
+
+public class ServerReplyData : IMessage
 {
+    public readonly List<WorkunitData> workunits;
 
-    public readonly WorkunitData workunit;
-    public readonly int deadlineTick;
-
-    public ServerReplyData(WorkunitData workunit, int deadlineTick)
+    public ServerReplyData(List<WorkunitData> workunits)
     {
-        this.workunit = workunit;
-        this.deadlineTick = deadlineTick;
+        this.workunits = workunits;
+    }
+
+    public float GetByteSize()
+    {
+        return workunits.Sum(workunit => workunit.byteSize);
     }
 }

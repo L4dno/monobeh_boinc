@@ -9,10 +9,14 @@ public abstract class BaseActor
     // Аналог помещения в xbt_queue_t очередь сообщений
     // родительский класс для сервера и клиента
     // так же отмечает себя как активного на родительском хосте
-    public IEnumerator Push(IMessage message)
+    public IEnumerator Push(IMessage message, LinkModel link)
     {
-        // calculate sending time based on single link
-        yield return new WaitForTicks();
+        var ticksToWait = (int)Mathf.Ceil(link.Latency + message.GetByteSize() / link.Bandwidth);
+        if (ticksToWait > 0)
+        {
+            yield return new WaitForTicks(ticksToWait);
+        }
+        
         _mailBox.Enqueue(message);
     }
     
