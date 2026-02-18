@@ -1,26 +1,27 @@
-using System.Collections;
-using System;
 using UnityEngine;
 
-// базовый класс для обертки корутин
-// чтобы был флаг завершенности и полиморфизм
-// возможно запоминание состояния выполнения
-
-public class Activity : IEnumerator
+public class Activity : CustomYieldInstruction
 {
-    public bool IsDone {get; private set;}
-    public bool MoveNext() => !IsDone;
-    public object Current {get;}
-    public void Reset() {}
+    private readonly int _targetTick;
 
-    public Activity(IEnumerator cor)
-    {
-        Current = SimulationManager.Instance.StartCoroutine(cor);
-    }
+    public override bool keepWaiting => TimeTickSystem.Instance.CurTick < _targetTick;
 
-    private IEnumerator Wrap(IEnumerator cor)
+    /// <summary>
+    /// Creates a computational activity that simulates work being done on a host.
+    //  An actor can yield this object in a coroutine to wait for the computation to finish.
+    /// </summary>
+    /// <param name="gflops">The amount of computation to perform in Giga-flops.</param>
+    /// <param name="host">The host on which the computation is running.</param>
+    public Activity(float gflops, HostModel host)
     {
-        yield return cor;
-        IsDone = true;
+        if (host.PowerGflops <= 0)
+        {
+            Debug.LogError("Host power must be greater than zero.");
+            _targetTick = TimeTickSystem.Instance.CurTick;
+            return;
+        }
+
+        int ticksToWait = (int)Mathf.Ceil(gflops / host.PowerGflops);
+        _targetTick = TimeTickSystem.Instance.CurTick + ticksToWait;
     }
 }

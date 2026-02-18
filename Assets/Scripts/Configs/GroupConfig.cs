@@ -19,6 +19,9 @@ public class GroupConfig : ScriptableObject
     [field: SerializeField]
     public int ConnectionInterval {get; private set;} = 20;
 
+    [field: SerializeField]
+    public int SchedulingInterval {get; private set;} = 10;
+
 
     [field: SerializeField]
     public float ServerLatency {get; private set;}
