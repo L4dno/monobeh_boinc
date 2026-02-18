@@ -1,36 +1,28 @@
-// using System.Collections.Generic;
+using System.Collections.Generic;
 
-// public class ClientProject
-// {
-//     public string Name;
-//     public int Priority;
-//     public bool IsOn = true;
+// Represents the client's view of a project it's attached to.
+public class ClientProject
+{
+    public string Name { get; }
+    public float Priority { get; }
+    public string ProjectActorName { get; }
+    public ProjectConfig Config { get; }
 
-//     // Task management
-//     public Queue<TaskModel> Tasks = new Queue<TaskModel>();
-//     public Queue<TaskModel> ReadyTasks = new Queue<TaskModel>();
-//     public List<TaskModel> RunningTasks = new List<TaskModel>();
-//     public Queue<ClientReplyData> CompletedTasks = new Queue<ClientReplyData>();
+    public double ShortTermDebt = 0;
+    public double LongTermDebt = 0;
+    public double WallCpuTime = 0;
+    public double Shortfall = 0;
 
-//     // Statistics
-//     public int TotalTasksChecked = 0;
-//     public int TotalTasksExecuted = 0;
-//     public int TotalTasksReceived = 0;
+    public Queue<WorkunitData> AvailableTasks = new Queue<WorkunitData>();
+    public Queue<WorkunitData> ReadyToExecuteTasks = new Queue<WorkunitData>();
+    public Queue<ClientReplyData> CompletedTasks = new Queue<ClientReplyData>();
+    public List<WorkunitData> InProgressTasks = new List<WorkunitData>();
 
-//     // Scheduling data
-//     public double AnticipatedDebt;
-//     public double ShortTermDebt;
-//     public double LongTermDebt;
-//     public double WallCpuTime;
-//     public double Shortfall;
-
-//     public ClientProject(ProjectConfig config)
-//     {
-//         Name = config.name;
-//         // In the old code, priority was passed via command line. 
-//         // Here, we'll assume a default or get it from config if available.
-//         // For now, let's hardcode it to 1, as in the original project struct, 
-//         // where it was used as a char.
-//         Priority = 1; 
-//     }
-// }
+    public ClientProject(ProjectConfig config)
+    {
+        Name = config.ProjectName;
+        Priority = config.Priority;
+        ProjectActorName = $"project{config.ProjectId}";
+        Config = config;
+    }
+}

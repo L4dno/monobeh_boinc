@@ -1,17 +1,10 @@
-// client to server
 public class ClientRequestData : IMessage
 {
-    public readonly int actorSender;
-    public readonly int groupPower;
-    public readonly float power;
-    public readonly float percentage;
+    public readonly string RequesterName;
 
-    public ClientRequestData(int actorSender, int groupPower, float power, float percentage)
+    public ClientRequestData(string requesterName)
     {
-        this.actorSender = actorSender;
-        this.groupPower = groupPower;
-        this.power = power;
-        this.percentage = percentage;
+        RequesterName = requesterName;
     }
 
     public float GetByteSize()
@@ -19,3 +12,4 @@ public class ClientRequestData : IMessage
         return 10240; // 10 KB
     }
 }
+

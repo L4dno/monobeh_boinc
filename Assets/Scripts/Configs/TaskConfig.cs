@@ -13,9 +13,20 @@ public class TaskConfig : ScriptableObject
     public float MaxTaskGflops {get; private set;} = 0.7f;
 
     [field: SerializeField]
-    public float InputFileBytes {get; private set;}= 20;
+    public float InputFileSize {get; private set;}= 20;
 
     [field: SerializeField]
-    public float OutputFileBytes {get; private set;} = 20;
+    public float OutputFileSize {get; private set;} = 20;
+
+    [field: SerializeField]
+    public float JobDuration {get; private set;} = 100;
     
+    [field: SerializeField]
+    public int MaxWorkunits {get; private set;} = 10;
+    
+    [field: SerializeField]
+    public int MaxErrorWorkunits {get; private set;} = 4;
+    
+    [field: SerializeField]
+    public int MaxSuccessWorkunits {get; private set;} = 6;
 }

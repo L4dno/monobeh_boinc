@@ -14,14 +14,14 @@ public class Activity : CustomYieldInstruction
     /// <param name="host">The host on which the computation is running.</param>
     public Activity(float gflops, HostModel host)
     {
-        if (host.PowerGflops <= 0)
+        if (host.HostPower <= 0)
         {
             Debug.LogError("Host power must be greater than zero.");
             _targetTick = TimeTickSystem.Instance.CurTick;
             return;
         }
 
-        int ticksToWait = (int)Mathf.Ceil(gflops / host.PowerGflops);
+        int ticksToWait = (int)Mathf.Ceil(gflops / host.HostPower);
         _targetTick = TimeTickSystem.Instance.CurTick + ticksToWait;
     }
 }

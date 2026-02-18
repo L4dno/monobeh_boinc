@@ -4,7 +4,7 @@ public enum WorkunitStatus : byte
     Success
 }
 
-public enum WorkunitVerdict : byte
+public enum WorkunitResult : byte
 {
     Correct,
     Incorrect
@@ -13,19 +13,21 @@ public enum WorkunitVerdict : byte
 
 public class ClientReplyData : IMessage
 {
+    public readonly string ClientName;
     public readonly WorkunitStatus status;
-    public readonly WorkunitVerdict verdict;
-    public readonly int taskId;
-    public readonly int workunitId;
+    public readonly WorkunitResult result;
+    public readonly string WorkunitName;
+    public readonly int ResultId;
     public readonly int credits;
     public readonly float fileSize;
 
-    public ClientReplyData(WorkunitStatus status, WorkunitVerdict verdict, int taskId, int workunitId, int credits, float fileSize)
+    public ClientReplyData(string clientName, WorkunitStatus status, WorkunitResult result, string workunitName, int resultId, int credits, float fileSize)
     {
+        this.ClientName = clientName;
         this.status = status;
-        this.verdict = verdict;
-        this.taskId = taskId;
-        this.workunitId = workunitId;
+        this.result = result;
+        this.WorkunitName = workunitName;
+        this.ResultId = resultId;
         this.credits = credits;
         this.fileSize = fileSize;
     }

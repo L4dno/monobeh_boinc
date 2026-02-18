@@ -53,21 +53,41 @@ public class SimulationManager : MonoBehaviour
 
     void CreatePlatform()
     {
-        // hosts 
-        // links
-        // The user will reimplement this method to create HostModel objects.
-        // Example:
-        // hosts = new List<HostModel>();
-        // hosts.Add(new HostModel(...));
-        // Link = new LinkModel(...);
+        int totalHosts = _config.NumberOfProjects + _config.GroupConfig.NumberOfClients;
+        hosts = new List<HostModel>(totalHosts);
+        Link = new LinkModel(_config.GroupConfig.ServerLatency, 
+                        _config.GroupConfig.ServerBandwidth);
+
+        int hostId = 0;
+
+        for (int i = 0; i < _config.NumberOfProjects; i++, hostId++)
+        {
+            hosts.Add(new HostModel(_config.ProjectConfig.ServerPowerGflops, hostId));
+        }
+        for (int i = 0; i < _config.GroupConfig.NumberOfClients; i++, hostId++)
+        {
+            float power = RandomUtils.GetDistribution(
+                _config.GroupConfig.RandomConfig.SpeedDistri,
+                 _config.GroupConfig.RandomConfig.PowerA, 
+                 _config.GroupConfig.RandomConfig.PowerB);
+            power = Mathf.Clamp(power, _config.GroupConfig.MinSpeed, _config.GroupConfig.MaxSpeed);
+            hosts.Add(new HostModel(power, hostId));
+        }
     }
 
     void CreateDeployment()
     {
-        // The user will reimplement this method to create actor instances.
-        // Example:
-        // new ProjectModel(_config.ProjectConfig, 0, hosts[0]);
-        // new ClientModel(_config.GroupConfig, projectConfigs, 0, hosts[1]);
+        int actorId = 0;
+        for (int i = 0; i < _config.NumberOfProjects; i++, actorId++)
+        {
+            new ProjectModel(_config.ProjectConfig, i, hosts[actorId]);
+        }
+        
+        ProjectConfig[] projectConfigs = { _config.ProjectConfig };
+        for (int i = 0; i < _config.GroupConfig.NumberOfClients; i++, actorId++)
+        {
+            new ClientModel(_config.GroupConfig, projectConfigs, i, hosts[actorId]);
+        }
     }
 
     void Awake()
