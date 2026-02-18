@@ -1,6 +1,7 @@
 using UnityEngine;
 
 // перегрузка инструкции для синхронизации с таймером на тиках
+// служит для зависимости от симуляционного времени
 
 public class WaitForTicks : CustomYieldInstruction
 {
