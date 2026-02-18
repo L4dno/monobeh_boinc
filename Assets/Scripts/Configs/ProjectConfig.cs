@@ -4,32 +4,32 @@ using UnityEngine;
 public class ProjectConfig : ScriptableObject
 {
     [field: SerializeField]
-    public string ProjectName {get; private set;} = "BOINC Project";
-    [field: SerializeField]
-    public float Priority {get; private set;} = 1.0f;
-    [field: SerializeField]
-    public int ProjectId {get; private set;} = 0;
-    [field: SerializeField]
-    public int MaxReadyWork {get; private set;} = 100;
+    public string ProjectName { get; private set; } = "ATLAS@home";
 
     [field: SerializeField]
-    public TaskConfig TaskConfig {get; private set;}
+    public float Priority { get; private set; } = 1.0f;
 
     [field: SerializeField]
-    public float ServerPowerGflops { get; private set; }
+    public int ProjectId { get; private set; } = 0;
 
     [field: SerializeField]
-    public int DelayBound {get; private set;} = 20;
+    public TaskConfig TaskConfig { get; private set; }
 
     [field: SerializeField]
-    public int MinQuorum {get; private set;} = 2;
+    public float ServerPowerGflops { get; private set; } = 12.0f; 
 
     [field: SerializeField]
-    public int InitialTaskCount {get; private set;} = 3000;
+    public int DelayBound { get; private set; } = 1000000000; 
 
     [field: SerializeField]
-    public int SuccessPercentage {get; private set;} = 95;
+    public int MinQuorum { get; private set; } = 2;
 
     [field: SerializeField]
-    public int CanonicalPercentage {get; private set;} = 95;
+    public int InitialTaskCount { get; private set; } = 3000; 
+
+    [field: SerializeField]
+    public int SuccessPercentage { get; private set; } = 95;
+
+    [field: SerializeField]
+    public int CanonicalPercentage { get; private set; } = 95;
 }

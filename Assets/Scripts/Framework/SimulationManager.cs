@@ -6,7 +6,7 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
-public class SimulationManager : MonoBehaviour
+public partial class SimulationManager : MonoBehaviour
 {
 
     public static SimulationManager Instance {get; private set;}
@@ -31,12 +31,16 @@ public class SimulationManager : MonoBehaviour
 
     private void Start()
     {
+        var statisticWriter = new StatisticWriter();
+        StartCoroutine(statisticWriter.WriteTaskCsv());
+    
         // start all actors main loop coroutine
         foreach (var actor in Actors.Values)
         {
             StartCoroutine(actor.MainLoop());
         }
-    }
+        
+        }
 
     private int _maxSimulationTime;
 

@@ -4,26 +4,28 @@ using UnityEngine;
 public class TaskConfig : ScriptableObject
 {
     [field: SerializeField]
-    public Distribution TaskPowerDistri {get; private set;} = Distribution.Normal;
+    public Distribution TaskPowerDistri { get; private set; } = Distribution.Normal;
 
     [field: SerializeField]
-    public float MinTaskGflops {get; private set;} = 0.5f;
+    public float MinTaskGflops { get; private set; } = 5040.0f;
 
     [field: SerializeField]
-    public float MaxTaskGflops {get; private set;} = 0.7f;
+    public float MaxTaskGflops { get; private set; } = 7040.0f;
 
     [field: SerializeField]
-    public float InputFileSize {get; private set;}= 20;
+    [Tooltip("Size in Megabytes (MB)")]
+    public float InputFileSizeMB { get; private set; } = 54.6f;
 
     [field: SerializeField]
-    public float OutputFileSize {get; private set;} = 20;
+    [Tooltip("Size in Megabytes (MB)")]
+    public float OutputFileSizeMB { get; private set; } = 100.0f;
     
     [field: SerializeField]
-    public int MaxWorkunits {get; private set;} = 10;
+    public int MaxWorkunits { get; private set; } = 4;
     
     [field: SerializeField]
-    public int MaxErrorWorkunits {get; private set;} = 4;
+    public int MaxErrorWorkunits { get; private set; } = 2;
     
     [field: SerializeField]
-    public int MaxSuccessWorkunits {get; private set;} = 6;
+    public int MaxSuccessWorkunits { get; private set; } = 3;
 }
