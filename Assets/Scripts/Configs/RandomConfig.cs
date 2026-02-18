@@ -9,9 +9,6 @@ public class RandomConfig : ScriptableObject
     [field: SerializeField]
     public Distribution HostPowerDistri {get; private set;} = Distribution.Exponential;
 
-    [field: SerializeField]
-    public Distribution SpeedDistri {get; private set;} = Distribution.Uniform;
-
     [Tooltip("A parameter for speed distribution")]
     [field: SerializeField]
     public float PowerA {get; private set;} = 0.1734f;

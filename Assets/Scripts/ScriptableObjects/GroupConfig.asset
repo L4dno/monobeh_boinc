@@ -17,5 +17,6 @@ MonoBehaviour:
   <MaxSpeed>k__BackingField: 117.71
   <MinSpeed>k__BackingField: 0.07
   <ConnectionInterval>k__BackingField: 20
+  <SchedulingInterval>k__BackingField: 10
   <ServerLatency>k__BackingField: 6
   <ServerBandwidth>k__BackingField: 7

@@ -12,7 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1cb8cfeb1c2b3ec42a9329206484658f, type: 3}
   m_Name: RandomConfig
   m_EditorClassIdentifier: 
-  <DeterministicSeed>k__BackingField: 6523446
   <HostPowerDistri>k__BackingField: 5
   <PowerA>k__BackingField: 0.1734
   <PowerB>k__BackingField: -1

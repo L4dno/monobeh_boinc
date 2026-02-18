@@ -5,12 +5,16 @@ using System.Linq;
 
 public class ProjectModel : BaseActor
 {
+    public string ProjectName => _config.ProjectName;
+    public IReadOnlyDictionary<string, TaskModel> TaskDatabase => _taskDatabase;
+
     private readonly ProjectConfig _config;
     
     private readonly Dictionary<string, TaskModel> _taskDatabase = new Dictionary<string, TaskModel>();
     private readonly Queue<WorkunitData> _readyWorkQueue = new Queue<WorkunitData>();
     private readonly Queue<ClientReplyData> _validationQueue = new Queue<ClientReplyData>();
     private readonly Queue<WorkunitData> _errorWorkQueue = new Queue<WorkunitData>();
+    private readonly Queue<TaskModel> _assimilationQueue = new Queue<TaskModel>();
     private int _tasksCreated = 0;
 
     public ProjectModel(ProjectConfig config, int actorId, HostModel host) : base($"project{actorId}", host)
@@ -22,6 +26,7 @@ public class ProjectModel : BaseActor
     {
         SimulationManager.Instance.StartCoroutine(WorkGeneratorLoop());
         SimulationManager.Instance.StartCoroutine(ValidatorLoop());
+        SimulationManager.Instance.StartCoroutine(AssimilatorLoop());
         yield return RequestDispatcherLoop();
     }
 
@@ -142,12 +147,44 @@ public class ProjectModel : BaseActor
                             _errorWorkQueue.Enqueue(workunit);
                         }
                     }
+                    
+                    // If the task is finished, queue it for assimilation
+                    if (task.CurrentState != TaskModel.State.InProgress)
+                    {
+                        _assimilationQueue.Enqueue(task);
+                    }
                 }
             }
             else
             {
                 yield return new WaitForTicks(1);
             }
+        }
+    }
+
+    private IEnumerator AssimilatorLoop()
+    {
+        while (true)
+        {
+            if (_assimilationQueue.Count > 0)
+            {
+                var taskToAssimilate = _assimilationQueue.Dequeue();
+
+                // A task is fully complete and can be removed if its state is final
+                // AND all the workunits it ever created have reported back.
+                if (taskToAssimilate.CurrentState != TaskModel.State.InProgress &&
+                    taskToAssimilate.ReceivedResults >= taskToAssimilate.Workunits.Count)
+                {
+                    _taskDatabase.Remove(taskToAssimilate.Name);
+                }
+                else
+                {
+                    // Not all results are back yet, put it back in the queue for later checking.
+                    _assimilationQueue.Enqueue(taskToAssimilate);
+                }
+            }
+            
+            yield return new WaitForTicks(100); // Check every 100 ticks
         }
     }
 }

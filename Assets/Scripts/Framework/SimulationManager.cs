@@ -42,7 +42,7 @@ public class SimulationManager : MonoBehaviour
 
     private void Tick(int curTick)
     {
-        //Debug.Log($"tick: {curTick}");
+        Debug.Log($"tick: {curTick}");
         if (curTick == _maxSimulationTime)
             {
                 // print statistics
@@ -67,7 +67,7 @@ public class SimulationManager : MonoBehaviour
         for (int i = 0; i < _config.GroupConfig.NumberOfClients; i++, hostId++)
         {
             float power = RandomUtils.GetDistribution(
-                _config.GroupConfig.RandomConfig.SpeedDistri,
+                _config.GroupConfig.RandomConfig.HostPowerDistri,
                  _config.GroupConfig.RandomConfig.PowerA, 
                  _config.GroupConfig.RandomConfig.PowerB);
             power = Mathf.Clamp(power, _config.GroupConfig.MinSpeed, _config.GroupConfig.MaxSpeed);

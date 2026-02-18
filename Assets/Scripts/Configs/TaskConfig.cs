@@ -17,9 +17,6 @@ public class TaskConfig : ScriptableObject
 
     [field: SerializeField]
     public float OutputFileSize {get; private set;} = 20;
-
-    [field: SerializeField]
-    public float JobDuration {get; private set;} = 100;
     
     [field: SerializeField]
     public int MaxWorkunits {get; private set;} = 10;
