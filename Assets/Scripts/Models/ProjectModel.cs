@@ -8,6 +8,9 @@ public class ProjectModel : BaseActor
     public string ProjectName => _config.ProjectName;
     public IReadOnlyDictionary<string, TaskModel> TaskDatabase => _taskDatabase;
 
+    public int StatTasksValid = 0;
+    public int StatTasksError = 0;
+
     private readonly ProjectConfig _config;
     
     private readonly Dictionary<string, TaskModel> _taskDatabase = new Dictionary<string, TaskModel>();
@@ -24,7 +27,8 @@ public class ProjectModel : BaseActor
 
     public override IEnumerator MainLoop()
     {
-        SimulationManager.Instance.StartCoroutine(WorkGeneratorLoop());
+        SimulationManager.Instance.StartCoroutine(TaskGeneratorLoop());
+        SimulationManager.Instance.StartCoroutine(ResultGeneratorLoop());
         SimulationManager.Instance.StartCoroutine(ValidatorLoop());
         SimulationManager.Instance.StartCoroutine(AssimilatorLoop());
         yield return RequestDispatcherLoop();
@@ -56,49 +60,86 @@ public class ProjectModel : BaseActor
     private IEnumerator ProcessWorkRequest(ClientRequestData request)
     {
         var workToSend = new List<WorkunitData>();
+        
         if (_readyWorkQueue.Count > 0)
         {
-            workToSend.Add(_readyWorkQueue.Dequeue());
+            float totalDuration = 0;
+            while (_readyWorkQueue.Count > 0)
+            {
+                var nextWorkunit = _readyWorkQueue.Peek();
+                float workunitDuration = nextWorkunit.durationInFlops / request.Power;
+
+                if (totalDuration + workunitDuration <= request.Percentage)
+                {
+                    totalDuration += workunitDuration;
+                    workToSend.Add(_readyWorkQueue.Dequeue());
+                }
+                else
+                {
+                    break;
+                }
+            }
+            
+            // If we found no work that fits the percentage, but there is work, send at least one.
+            if (workToSend.Count == 0 && _readyWorkQueue.Count > 0)
+            {
+                workToSend.Add(_readyWorkQueue.Dequeue());
+            }
         }
 
-        if (workToSend.Any())
-        {
-            var reply = new ServerReplyData(workToSend);
-            yield return Push(request.RequesterName, reply);
-        }
+        // Always send a reply. If no work was available, workToSend will be empty.
+        var reply = new ServerReplyData(workToSend);
+        yield return Push(request.RequesterName, reply);
     }
 
-    private IEnumerator WorkGeneratorLoop()
+    private IEnumerator TaskGeneratorLoop()
     {
+        while (_tasksCreated < _config.InitialTaskCount)
+        {
+            var taskName = $"Task-{_tasksCreated}";
+            var task = new TaskModel(taskName, _config);
+            _taskDatabase.Add(taskName, task);
+            _tasksCreated++;
+        }
+        yield break; // We are done, this coroutine finishes.
+    }
+
+    private IEnumerator ResultGeneratorLoop()
+    {
+        // Wait a frame for TaskGeneratorLoop to finish creating the tasks.
+        yield return null;
+
+        // --- Part 1: Create ALL initial results at once ---
+        foreach (var task in _taskDatabase.Values)
+        {
+            // Use a while loop to respect the InitialCreatedWorkunits config
+            while (task.CanCreateInitialWork())
+            {
+                _readyWorkQueue.Enqueue(task.CreateWorkunit());
+            }
+        }
+
+        // --- Part 2: Continuously handle errored work ---
         while (true)
         {
-            while (_errorWorkQueue.Count > 0)
+            if (_errorWorkQueue.Count > 0)
             {
                 var workunitToRecreate = _errorWorkQueue.Dequeue();
-                var task = _taskDatabase[workunitToRecreate.ParentTaskName];
-                if (task.CanCreateMoreWork())
+                if (_taskDatabase.TryGetValue(workunitToRecreate.ParentTaskName, out var task))
                 {
-                    _readyWorkQueue.Enqueue(task.CreateWorkunit());
+                    if (task.CanCreateMoreWork()) // Check against absolute max
+                    {
+                        _readyWorkQueue.Enqueue(task.CreateWorkunit());
+                    }
                 }
+                // Yield to process one per frame to avoid freezing if the error queue is large
+                yield return null; 
             }
-            
-            if (_tasksCreated < _config.InitialTaskCount)
+            else
             {
-                var taskName = $"Task-{_tasksCreated}";
-                var task = new TaskModel(taskName, _config);
-                _taskDatabase.Add(taskName, task);
-                _tasksCreated++;
+                // If no errors, just wait.
+                yield return new WaitForTicks(10);
             }
-
-            foreach (var task in _taskDatabase.Values)
-            {
-                if (task.CanCreateInitialWork())
-                {
-                    _readyWorkQueue.Enqueue(task.CreateWorkunit());
-                }
-            }
-            
-            yield return new WaitForTicks(10);
         }
     }
 
@@ -134,27 +175,29 @@ public class ProjectModel : BaseActor
 
                     if (task.CurrentState == TaskModel.State.InProgress)
                     {
+                        bool isFinished = false;
                         if (task.ValidResults >= _config.MinQuorum)
                         {
                             task.CurrentState = TaskModel.State.Valid;
+                            isFinished = true;
                         }
                         else if (task.ErrorResults >= _config.TaskConfig.MaxErrorWorkunits || 
                                  task.SuccessResults >= _config.TaskConfig.MaxSuccessWorkunits ||
                                  task.Workunits.Count >= _config.TaskConfig.MaxCreatedWorkunits)
                         {
                             task.CurrentState = TaskModel.State.Error;
+                            isFinished = true;
+                        }
+
+                        if (isFinished)
+                        {
+                            _assimilationQueue.Enqueue(task);
                         }
                         else if(isTimeout || reply.status == WorkunitStatus.Fail)
                         {
                             // Re-issue work
                             _errorWorkQueue.Enqueue(workunit);
                         }
-                    }
-                    
-                    // If the task is finished, queue it for assimilation
-                    if (task.CurrentState != TaskModel.State.InProgress)
-                    {
-                        _assimilationQueue.Enqueue(task);
                     }
                 }
             }
@@ -178,6 +221,14 @@ public class ProjectModel : BaseActor
                 if (taskToAssimilate.CurrentState != TaskModel.State.InProgress &&
                     taskToAssimilate.ReceivedResults >= taskToAssimilate.Workunits.Count)
                 {
+                    if (taskToAssimilate.CurrentState == TaskModel.State.Valid)
+                    {
+                        StatTasksValid++;
+                    }
+                    else
+                    {
+                        StatTasksError++;
+                    }
                     _taskDatabase.Remove(taskToAssimilate.Name);
                 }
                 else

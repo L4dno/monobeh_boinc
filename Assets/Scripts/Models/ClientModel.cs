@@ -12,6 +12,7 @@ public class ClientModel : BaseActor
     private double _lastWallTick;
     private bool _isOnline = true;
     private readonly List<(WorkunitData Workunit, ClientProject Project)> _deadlineMissedTasks = new List<(WorkunitData, ClientProject)>();
+    private Coroutine _executorCoroutine;
 
     public ClientModel(GroupConfig config, ProjectConfig[] projectConfigs, int actorId, HostModel host) : base($"client{actorId}", host)
     {
@@ -32,29 +33,54 @@ public class ClientModel : BaseActor
         SimulationManager.Instance.StartCoroutine(AvailabilityLoop());
         SimulationManager.Instance.StartCoroutine(SchedulerLoop());
         SimulationManager.Instance.StartCoroutine(WorkFetchLoop());
-        yield return ExecutorLoop();
+        _executorCoroutine = SimulationManager.Instance.StartCoroutine(ExecutorLoop());
+        yield break;
     }
 
     private IEnumerator AvailabilityLoop()
     {
         while (true)
         {
+            // GOING ONLINE
+            _isOnline = true;
+            if (_executorCoroutine == null)
+            {
+                _executorCoroutine = SimulationManager.Instance.StartCoroutine(ExecutorLoop());
+            }
             var onlineDuration = (int)(RandomUtils.GetDistribution(
                                        _config.RandomConfig.HostAvailabilityDistri,
                                        _config.RandomConfig.HostAvailabilityA,
                                        _config.RandomConfig.HostAvailabilityB
                                    ) * 3600);
-            
-            _isOnline = true;
             yield return new WaitForTicks(onlineDuration);
 
+            // GOING OFFLINE
+            _isOnline = false;
+            if (_executorCoroutine != null)
+            {
+                SimulationManager.Instance.StopCoroutine(_executorCoroutine);
+                _executorCoroutine = null;
+
+                foreach (var proj in _projects.Values)
+                {
+                    if (proj.InProgressTasks.Any())
+                    {
+                        var orphanedTasks = new List<WorkunitData>(proj.InProgressTasks);
+                        proj.InProgressTasks.Clear();
+                        foreach (var task in orphanedTasks)
+                        {
+                            // Return task to the available queue to be rescheduled from scratch.
+                            proj.AvailableTasks.Enqueue(task);
+                        }
+                    }
+                }
+            }
             var offlineDuration = (int)(RandomUtils.GetDistribution(
                                         _config.RandomConfig.HostNonavailabilityDistri,
                                         _config.RandomConfig.HostNonavailabilityA,
                                         _config.RandomConfig.HostNonavailabilityB
                                     ) * 3600);
 
-            _isOnline = false;
             yield return new WaitForTicks(offlineDuration);
         }
     }
@@ -109,7 +135,14 @@ public class ClientModel : BaseActor
 
             if (selectedProj != null && selectedProj.Shortfall > 0)
             {
-                yield return AskForWork(selectedProj);
+                var workPercentage = selectedProj.Shortfall > _totalShortfall / _sumPriority
+                    ? selectedProj.Shortfall
+                    : _totalShortfall / _sumPriority;
+
+                if (_deadlineMissedTasks.Count == 0 && workPercentage > 0)
+                {
+                    yield return AskForWork(selectedProj, (float)workPercentage);
+                }
             }
         }
     }
@@ -118,11 +151,6 @@ public class ClientModel : BaseActor
     {
         while (true)
         {
-            if (!_isOnline)
-            {
-                yield return new WaitUntil(() => _isOnline);
-            }
-            
             (WorkunitData workunit, ClientProject project)? taskToExecute = null;
 
             foreach (var proj in _projects.Values)
@@ -175,30 +203,40 @@ public class ClientModel : BaseActor
         }
     }
 
-    private IEnumerator AskForWork(ClientProject proj)
+    private IEnumerator AskForWork(ClientProject proj, float workPercentage)
     {
         while (proj.CompletedTasks.Count > 0)
         {
             yield return Push(proj.ProjectActorName, proj.CompletedTasks.Dequeue());
         }
 
-        var request = new ClientRequestData(this.ActorName);
+        var request = new ClientRequestData(this.ActorName, (int)Host.HostPower, workPercentage);
         yield return Push(proj.ProjectActorName, request);
         
         IMessage message = null;
-        for (int i = 0; i < 100; i++) 
+        // Wait until we get a reply of the correct type.
+        // This is safer than a fixed-time loop, as other messages might arrive.
+        while (true) 
         {
             message = Receive();
-            if (message != null) break;
+            if (message is ServerReplyData)
+            {
+                break;
+            }
             yield return new WaitForTicks(1);
         }
 
         if (message is ServerReplyData serverReply)
         {
-            foreach (var workunit in serverReply.workunits)
+            if (serverReply.workunits.Any())
             {
-                proj.AvailableTasks.Enqueue(workunit);
+                foreach (var workunit in serverReply.workunits)
+                {
+                    proj.AvailableTasks.Enqueue(workunit);
+                }
             }
+            // If the reply is empty, do nothing. The coroutine will simply end,
+            // and the parent WorkFetchLoop will wait for the next ConnectionInterval.
         }
     }
 

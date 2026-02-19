@@ -70,11 +70,14 @@ public partial class SimulationManager
                 foreach (var project in projects)
                 {
                     
-                    int totalTasks = project.TaskDatabase.Count;
                     int inProgress = project.TaskDatabase.Values.Count(t => t.CurrentState == TaskModel.State.InProgress);
-                    int valid = project.TaskDatabase.Values.Count(t => t.CurrentState == TaskModel.State.Valid);
-                    int error = project.TaskDatabase.Values.Count(t => t.CurrentState == TaskModel.State.Error);
+                    int validInDb = project.TaskDatabase.Values.Count(t => t.CurrentState == TaskModel.State.Valid);
+                    int errorInDb = project.TaskDatabase.Values.Count(t => t.CurrentState == TaskModel.State.Error);
+
+                    int valid = validInDb + project.StatTasksValid;
+                    int error = errorInDb + project.StatTasksError;
                     int completed = valid + error;
+                    int totalTasks = inProgress + completed;
 
                     file.WriteLine($"{timestamp},{project.ProjectName},{totalTasks},{inProgress},{completed},{valid},{error}");
                 }
