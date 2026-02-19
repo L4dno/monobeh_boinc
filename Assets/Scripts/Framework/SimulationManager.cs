@@ -5,6 +5,7 @@ using UnityEngine;
 
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 
 public partial class SimulationManager : MonoBehaviour
 {
@@ -29,9 +30,11 @@ public partial class SimulationManager : MonoBehaviour
         }
     }
 
+    private StatisticWriter statisticWriter;
     private void Start()
     {
-        var statisticWriter = new StatisticWriter();
+        string filePath = Path.Combine(Application.persistentDataPath, Instance._config.StatisticsFileName);
+        statisticWriter = new StatisticWriter(filePath);
         StartCoroutine(statisticWriter.WriteTaskCsv());
     
         // start all actors main loop coroutine
@@ -51,6 +54,7 @@ public partial class SimulationManager : MonoBehaviour
             {
                 // print statistics
                 StopAllCoroutines();
+                statisticWriter.WriteStats();
                 QuitGame();
             }
     }

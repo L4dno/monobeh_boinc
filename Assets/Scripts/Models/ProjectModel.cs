@@ -89,7 +89,7 @@ public class ProjectModel : BaseActor
 
             foreach (var task in _taskDatabase.Values)
             {
-                if (_readyWorkQueue.Count < _config.MaxReadyWork && task.CanCreateMoreWork())
+                if (task.CanCreateMoreWork())
                 {
                     _readyWorkQueue.Enqueue(task.CreateWorkunit());
                 }

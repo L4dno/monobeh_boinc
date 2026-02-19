@@ -14,11 +14,11 @@ public class TaskConfig : ScriptableObject
 
     [field: SerializeField]
     [Tooltip("Size in Megabytes (MB)")]
-    public float InputFileSizeMB { get; private set; } = 54.6f;
+    public float InputFileSize { get; private set; } = 54.6f;
 
     [field: SerializeField]
     [Tooltip("Size in Megabytes (MB)")]
-    public float OutputFileSizeMB { get; private set; } = 100.0f;
+    public float OutputFileSize { get; private set; } = 100.0f;
     
     [field: SerializeField]
     public int MaxWorkunits { get; private set; } = 4;

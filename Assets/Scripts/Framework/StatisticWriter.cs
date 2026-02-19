@@ -8,54 +8,83 @@ public partial class SimulationManager
 {
     private class StatisticWriter
     {
-        private bool _headerWritten = false;
-        private const int WaitTime = 3600;
+    private readonly string _filePath;
+    private const int Interval = 3600;
 
-        public IEnumerator WriteTaskCsv()
+    public StatisticWriter(string filePath)
+    {
+        _filePath = filePath;
+        InitializeFile();
+    }
+
+    private void InitializeFile()
+    {
+        try
         {
-            string filePath = Instance._config.StatisticsFileName;
             
-            // Clear the file at the beginning of the simulation
-            if (File.Exists(filePath))
+            if (File.Exists(_filePath))
             {
-                File.Delete(filePath);
+                File.Delete(_filePath);
             }
 
-            while (true)
+            
+            using (StreamWriter file = new StreamWriter(_filePath, false))
             {
-                yield return new WaitForTicks(WaitTime);
+                file.WriteLine("timestamp,project_name,tasks_total,tasks_inprogress,tasks_completed,tasks_valid,tasks_error");
+            }
+        }
+        catch (System.Exception ex)
+        {
+            Debug.LogError($"Error initializing stats file: {ex.Message}");
+        }
+    }
 
-                try
+    public IEnumerator WriteTaskCsv()
+    {
+        
+        WriteStatsToFile();
+
+        while (true)
+        {
+            yield return new WaitForTicks(Interval);
+            WriteStatsToFile();
+        }
+    }
+
+    public void WriteStats()
+    {
+        WriteStatsToFile();
+    }
+
+    private void WriteStatsToFile()
+    {
+        try
+        {
+            using (StreamWriter file = new StreamWriter(_filePath, true))
+            {
+                double timestamp = TimeTickSystem.Instance.CurTick;
+
+                
+                var projects = Instance.Actors.Values.OfType<ProjectModel>();
+
+                foreach (var project in projects)
                 {
-                    using (StreamWriter file = new StreamWriter(filePath, true))
-                    {
-                        if (!_headerWritten)
-                        {
-                            file.WriteLine("timestamp,project_name,tasks_total,tasks_inprogress,tasks_completed,tasks_valid,tasks_error");
-                            _headerWritten = true;
-                        }
+                    
+                    int totalTasks = project.TaskDatabase.Count;
+                    int inProgress = project.TaskDatabase.Values.Count(t => t.CurrentState == TaskModel.State.InProgress);
+                    int valid = project.TaskDatabase.Values.Count(t => t.CurrentState == TaskModel.State.Valid);
+                    int error = project.TaskDatabase.Values.Count(t => t.CurrentState == TaskModel.State.Error);
+                    int completed = valid + error;
 
-                        double timestamp = TimeTickSystem.Instance.CurTick;
-
-                        var projects = Instance.Actors.Values.OfType<ProjectModel>();
-
-                        foreach (var project in projects)
-                        {
-                            int totalTasks = project.TaskDatabase.Count;
-                            int inProgressTasks = project.TaskDatabase.Values.Count(t => t.CurrentState == TaskModel.State.InProgress);
-                            int validTasks = project.TaskDatabase.Values.Count(t => t.CurrentState == TaskModel.State.Valid);
-                            int errorTasks = project.TaskDatabase.Values.Count(t => t.CurrentState == TaskModel.State.Error);
-                            int completedTasks = validTasks + errorTasks;
-
-                            file.WriteLine($"{timestamp},{project.ProjectName},{totalTasks},{inProgressTasks},{completedTasks},{validTasks},{errorTasks}");
-                        }
-                    }
-                }
-                catch (System.Exception ex)
-                {
-                    Debug.LogError($"Error writing statistics to file: {ex.Message}");
+                    file.WriteLine($"{timestamp},{project.ProjectName},{totalTasks},{inProgress},{completed},{valid},{error}");
                 }
             }
         }
+        catch (System.Exception ex)
+        {
+            Debug.LogError($"Error writing statistics: {ex.Message}");
+        }
     }
+}
+
 }

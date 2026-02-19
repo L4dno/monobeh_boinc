@@ -13,11 +13,10 @@ MonoBehaviour:
   m_Name: TaskConfig
   m_EditorClassIdentifier: 
   <TaskPowerDistri>k__BackingField: 3
-  <MinTaskGflops>k__BackingField: 0.5
-  <MaxTaskGflops>k__BackingField: 0.7
-  <InputFileSize>k__BackingField: 20
-  <OutputFileSize>k__BackingField: 20
-  <JobDuration>k__BackingField: 100
-  <MaxWorkunits>k__BackingField: 10
-  <MaxErrorWorkunits>k__BackingField: 4
-  <MaxSuccessWorkunits>k__BackingField: 6
+  <MinTaskGflops>k__BackingField: 5040
+  <MaxTaskGflops>k__BackingField: 7040
+  <InputFileSize>k__BackingField: 54.6
+  <OutputFileSize>k__BackingField: 100
+  <MaxWorkunits>k__BackingField: 4
+  <MaxErrorWorkunits>k__BackingField: 2
+  <MaxSuccessWorkunits>k__BackingField: 3

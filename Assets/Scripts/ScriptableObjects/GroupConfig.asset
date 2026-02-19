@@ -12,11 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 250ff12e39c2dda4691bc73643a3de7b, type: 3}
   m_Name: GroupConfig
   m_EditorClassIdentifier: 
-  <NumberOfClients>k__BackingField: 3
+  <NumberOfClients>k__BackingField: 1000
   <RandomConfig>k__BackingField: {fileID: 11400000, guid: f98141a8d1462bc4cba7165c8b751a5a, type: 2}
   <MaxSpeed>k__BackingField: 117.71
   <MinSpeed>k__BackingField: 0.07
-  <ConnectionInterval>k__BackingField: 20
-  <SchedulingInterval>k__BackingField: 10
-  <ServerLatency>k__BackingField: 6
-  <ServerBandwidth>k__BackingField: 7
+  <ConnectionInterval>k__BackingField: 1
+  <SchedulingInterval>k__BackingField: 3600
+  <ServerLatency>k__BackingField: 1
+  <ServerBandwidth>k__BackingField: 1.25

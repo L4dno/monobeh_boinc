@@ -25,6 +25,7 @@ public class ProjectConfig : ScriptableObject
     public int MinQuorum { get; private set; } = 2;
 
     [field: SerializeField]
+    [Tooltip("tasks that is replicated to wu's")]
     public int InitialTaskCount { get; private set; } = 3000; 
 
     [field: SerializeField]

@@ -14,5 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   <SimLength>k__BackingField: 1
   <ProjectConfig>k__BackingField: {fileID: 11400000, guid: 511d7d170163f8a4ead04a683594681d, type: 2}
-  <NumberOfGroups>k__BackingField: 1
   <GroupConfig>k__BackingField: {fileID: 11400000, guid: eb27d3ca1ce3ba34485e946576290686, type: 2}
+  <DeterministicSeed>k__BackingField: 6523446
+  <StatisticsFileName>k__BackingField: statistics.csv
