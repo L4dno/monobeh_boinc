@@ -37,7 +37,8 @@ public class TaskModel
     
     }
 
-    public bool CanCreateMoreWork() => _workunitsCreated < _config.TaskConfig.MaxWorkunits;
+    public bool CanCreateInitialWork() => _workunitsCreated < _config.TaskConfig.InitialCreatedWorkunits;
+    public bool CanCreateMoreWork() => _workunitsCreated < _config.TaskConfig.MaxCreatedWorkunits;
 
     public WorkunitData CreateWorkunit()
     {

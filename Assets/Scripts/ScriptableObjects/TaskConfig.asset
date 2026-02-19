@@ -17,6 +17,7 @@ MonoBehaviour:
   <MaxTaskGflops>k__BackingField: 7040
   <InputFileSize>k__BackingField: 54.6
   <OutputFileSize>k__BackingField: 100
-  <MaxWorkunits>k__BackingField: 4
+  <InitialCreatedWorkunits>k__BackingField: 2
+  <MaxCreatedWorkunits>k__BackingField: 4
   <MaxErrorWorkunits>k__BackingField: 2
   <MaxSuccessWorkunits>k__BackingField: 3

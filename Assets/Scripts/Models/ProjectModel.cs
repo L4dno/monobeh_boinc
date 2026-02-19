@@ -76,7 +76,10 @@ public class ProjectModel : BaseActor
             {
                 var workunitToRecreate = _errorWorkQueue.Dequeue();
                 var task = _taskDatabase[workunitToRecreate.ParentTaskName];
-                _readyWorkQueue.Enqueue(task.CreateWorkunit());
+                if (task.CanCreateMoreWork())
+                {
+                    _readyWorkQueue.Enqueue(task.CreateWorkunit());
+                }
             }
             
             if (_tasksCreated < _config.InitialTaskCount)
@@ -89,7 +92,7 @@ public class ProjectModel : BaseActor
 
             foreach (var task in _taskDatabase.Values)
             {
-                if (task.CanCreateMoreWork())
+                if (task.CanCreateInitialWork())
                 {
                     _readyWorkQueue.Enqueue(task.CreateWorkunit());
                 }
@@ -137,7 +140,7 @@ public class ProjectModel : BaseActor
                         }
                         else if (task.ErrorResults >= _config.TaskConfig.MaxErrorWorkunits || 
                                  task.SuccessResults >= _config.TaskConfig.MaxSuccessWorkunits ||
-                                 task.Workunits.Count >= _config.TaskConfig.MaxWorkunits)
+                                 task.Workunits.Count >= _config.TaskConfig.MaxCreatedWorkunits)
                         {
                             task.CurrentState = TaskModel.State.Error;
                         }

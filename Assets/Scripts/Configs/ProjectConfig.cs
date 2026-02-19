@@ -26,7 +26,7 @@ public class ProjectConfig : ScriptableObject
 
     [field: SerializeField]
     [Tooltip("tasks that is replicated to wu's")]
-    public int InitialTaskCount { get; private set; } = 3000; 
+    public int InitialTaskCount { get; private set; } = 100; 
 
     [field: SerializeField]
     public int SuccessPercentage { get; private set; } = 95;

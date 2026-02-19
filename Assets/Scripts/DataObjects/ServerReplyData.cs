@@ -12,6 +12,6 @@ public class ServerReplyData : IMessage
 
     public float GetByteSize()
     {
-        return workunits.Sum(workunit => workunit.byteSize);
+        return workunits.Where(workunit => workunit != null).Sum(workunit => workunit.byteSize);
     }
 }

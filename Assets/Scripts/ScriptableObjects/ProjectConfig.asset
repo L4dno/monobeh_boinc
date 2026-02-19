@@ -19,6 +19,6 @@ MonoBehaviour:
   <ServerPowerGflops>k__BackingField: 12
   <DelayBound>k__BackingField: 1000000000
   <MinQuorum>k__BackingField: 2
-  <InitialTaskCount>k__BackingField: 3000
+  <InitialTaskCount>k__BackingField: 200
   <SuccessPercentage>k__BackingField: 95
   <CanonicalPercentage>k__BackingField: 95
