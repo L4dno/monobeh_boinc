@@ -13,10 +13,16 @@ public class ClientModel : BaseActor
     private bool _isOnline = true;
     private readonly List<(WorkunitData Workunit, ClientProject Project)> _deadlineMissedTasks = new List<(WorkunitData, ClientProject)>();
     private Coroutine _executorCoroutine;
+    
+    private readonly float _baseConnectionInterval;
+    private float _currentConnectionInterval;
+    private const float MAX_CONNECTION_INTERVAL = 86400;
 
     public ClientModel(GroupConfig config, ProjectConfig[] projectConfigs, int actorId, HostModel host) : base($"client{actorId}", host)
     {
         _config = config;
+        _baseConnectionInterval = _config.ConnectionInterval;
+        _currentConnectionInterval = _baseConnectionInterval;
 
         foreach (var projConfig in projectConfigs)
         {
@@ -116,7 +122,7 @@ public class ClientModel : BaseActor
                 yield return new WaitUntil(() => _isOnline);
             }
             
-            yield return new WaitForTicks(_config.ConnectionInterval);
+            yield return new WaitForTicks((int)_currentConnectionInterval);
             
             UpdateShortfall();
 
@@ -230,13 +236,25 @@ public class ClientModel : BaseActor
         {
             if (serverReply.workunits.Any())
             {
+                _currentConnectionInterval /= 2;
+                if (_currentConnectionInterval < _baseConnectionInterval)
+                {
+                    _currentConnectionInterval = _baseConnectionInterval;
+                }
+                
                 foreach (var workunit in serverReply.workunits)
                 {
                     proj.AvailableTasks.Enqueue(workunit);
                 }
             }
-            // If the reply is empty, do nothing. The coroutine will simply end,
-            // and the parent WorkFetchLoop will wait for the next ConnectionInterval.
+            else
+            {
+                _currentConnectionInterval *= 2;
+                if (_currentConnectionInterval > MAX_CONNECTION_INTERVAL)
+                {
+                    _currentConnectionInterval = MAX_CONNECTION_INTERVAL;
+                }
+            }
         }
     }
 

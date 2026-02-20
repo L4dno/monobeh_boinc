@@ -12,7 +12,6 @@ public class HostModel
     {
         HostId = id;
         HostPower = power;
-        Debug.Log($"Host {HostId} created with power {HostPower}");
     }
 
 

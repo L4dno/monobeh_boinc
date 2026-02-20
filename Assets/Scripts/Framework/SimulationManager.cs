@@ -6,6 +6,7 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System;
 
 public partial class SimulationManager : MonoBehaviour
 {
@@ -33,7 +34,9 @@ public partial class SimulationManager : MonoBehaviour
     private StatisticWriter statisticWriter;
     private void Start()
     {
-        string filePath = Path.Combine(Application.persistentDataPath, Instance._config.StatisticsFileName);
+        
+        string filePath = Path.Combine(Application.persistentDataPath,  
+        DateTime.Now.ToString("yyyyMMdd_HHmmss")  + "_" + Instance._config.StatisticsFileName);
         statisticWriter = new StatisticWriter(filePath);
         StartCoroutine(statisticWriter.WriteTaskCsv());
     
@@ -49,7 +52,10 @@ public partial class SimulationManager : MonoBehaviour
 
     private void Tick(int curTick)
     {
-        Debug.Log($"tick: {curTick}");
+        if (curTick % 3600 == 0)
+        {
+            Debug.Log($"tick: {curTick/3600}");
+        }
         if (curTick == _maxSimulationTime)
             {
                 // print statistics

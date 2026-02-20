@@ -60,34 +60,48 @@ public class ProjectModel : BaseActor
     private IEnumerator ProcessWorkRequest(ClientRequestData request)
     {
         var workToSend = new List<WorkunitData>();
+        var sentTaskNames = new HashSet<string>();
         
         if (_readyWorkQueue.Count > 0)
         {
             float totalDuration = 0;
-            while (_readyWorkQueue.Count > 0)
+
+            foreach (var candidate in _readyWorkQueue)
             {
-                var nextWorkunit = _readyWorkQueue.Peek();
-                float workunitDuration = nextWorkunit.durationInFlops / request.Power;
+                if (sentTaskNames.Contains(candidate.ParentTaskName))
+                {
+                    continue;
+                }
+                
+                float workunitDuration = candidate.durationInFlops / request.Power;
 
                 if (totalDuration + workunitDuration <= request.Percentage)
                 {
                     totalDuration += workunitDuration;
-                    workToSend.Add(_readyWorkQueue.Dequeue());
-                }
-                else
-                {
-                    break;
+                    workToSend.Add(candidate);
+                    sentTaskNames.Add(candidate.ParentTaskName);
                 }
             }
             
-            // If we found no work that fits the percentage, but there is work, send at least one.
             if (workToSend.Count == 0 && _readyWorkQueue.Count > 0)
             {
-                workToSend.Add(_readyWorkQueue.Dequeue());
+                workToSend.Add(_readyWorkQueue.First());
+            }
+            
+            if (workToSend.Any())
+            {
+                var workToSendSet = new HashSet<WorkunitData>(workToSend);
+                var newQueue = new Queue<WorkunitData>(_readyWorkQueue.Where(w => !workToSendSet.Contains(w)));
+                
+                _readyWorkQueue.Clear();
+                while (newQueue.Any())
+                {
+                    _readyWorkQueue.Enqueue(newQueue.Dequeue());
+                }
             }
         }
 
-        // Always send a reply. If no work was available, workToSend will be empty.
+        
         var reply = new ServerReplyData(workToSend);
         yield return Push(request.RequesterName, reply);
     }
@@ -101,25 +115,25 @@ public class ProjectModel : BaseActor
             _taskDatabase.Add(taskName, task);
             _tasksCreated++;
         }
-        yield break; // We are done, this coroutine finishes.
+        yield break; 
     }
 
     private IEnumerator ResultGeneratorLoop()
     {
-        // Wait a frame for TaskGeneratorLoop to finish creating the tasks.
+        
         yield return null;
 
-        // --- Part 1: Create ALL initial results at once ---
+       
         foreach (var task in _taskDatabase.Values)
         {
-            // Use a while loop to respect the InitialCreatedWorkunits config
+           
             while (task.CanCreateInitialWork())
             {
                 _readyWorkQueue.Enqueue(task.CreateWorkunit());
             }
         }
 
-        // --- Part 2: Continuously handle errored work ---
+       
         while (true)
         {
             if (_errorWorkQueue.Count > 0)
@@ -137,7 +151,7 @@ public class ProjectModel : BaseActor
             }
             else
             {
-                // If no errors, just wait.
+                
                 yield return new WaitForTicks(10);
             }
         }
@@ -195,7 +209,7 @@ public class ProjectModel : BaseActor
                         }
                         else if(isTimeout || reply.status == WorkunitStatus.Fail)
                         {
-                            // Re-issue work
+                           
                             _errorWorkQueue.Enqueue(workunit);
                         }
                     }
@@ -216,8 +230,7 @@ public class ProjectModel : BaseActor
             {
                 var taskToAssimilate = _assimilationQueue.Dequeue();
 
-                // A task is fully complete and can be removed if its state is final
-                // AND all the workunits it ever created have reported back.
+              
                 if (taskToAssimilate.CurrentState != TaskModel.State.InProgress &&
                     taskToAssimilate.ReceivedResults >= taskToAssimilate.Workunits.Count)
                 {
@@ -233,12 +246,12 @@ public class ProjectModel : BaseActor
                 }
                 else
                 {
-                    // Not all results are back yet, put it back in the queue for later checking.
+                
                     _assimilationQueue.Enqueue(taskToAssimilate);
                 }
             }
             
-            yield return new WaitForTicks(100); // Check every 100 ticks
+            yield return new WaitForTicks(100); 
         }
     }
 }

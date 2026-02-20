@@ -9,6 +9,5 @@ public class LinkModel
     {
         Latency = latency;
         Bandwidth = bandwidth;
-        Debug.Log($"Link created with latency {Latency} and bandwidth {Bandwidth}");
     }
 }
