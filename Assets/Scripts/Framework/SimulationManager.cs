@@ -35,8 +35,12 @@ public partial class SimulationManager : MonoBehaviour
     private void Start()
     {
         
-        string filePath = Path.Combine(Application.persistentDataPath,  
-        DateTime.Now.ToString("yyyyMMdd_HHmmss")  + "_" + Instance._config.StatisticsFileName);
+        string outputRoot = Path.Combine(Directory.GetParent(Application.dataPath).FullName, "SimulationOutput");
+        string sessionDir = Path.Combine(outputRoot, DateTime.Now.ToString("yyyyMMdd_HHmmss"));
+        Directory.CreateDirectory(sessionDir);
+        string filePath = Path.Combine(sessionDir, Instance._config.StatisticsFileName);
+        Debug.LogWarning($"Statistics file path: {filePath}");
+        
         statisticWriter = new StatisticWriter(filePath);
         StartCoroutine(statisticWriter.WriteTaskCsv());
     
