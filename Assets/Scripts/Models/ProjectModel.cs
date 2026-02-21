@@ -8,9 +8,6 @@ public class ProjectModel : BaseActor
     public string ProjectName => _config.ProjectName;
     public IReadOnlyDictionary<string, TaskModel> TaskDatabase => _taskDatabase;
 
-    public int StatTasksValid = 0;
-    public int StatTasksError = 0;
-
     private readonly ProjectConfig _config;
     
     private readonly Dictionary<string, TaskModel> _taskDatabase = new Dictionary<string, TaskModel>();
@@ -18,11 +15,11 @@ public class ProjectModel : BaseActor
     private readonly Queue<ClientReplyData> _validationQueue = new Queue<ClientReplyData>();
     private readonly Queue<WorkunitData> _errorWorkQueue = new Queue<WorkunitData>();
     private readonly Queue<TaskModel> _assimilationQueue = new Queue<TaskModel>();
-    private int _tasksCreated = 0;
 
     public ProjectModel(ProjectConfig config, int actorId, HostModel host) : base($"project{actorId}", host)
     {
         _config = config;
+        GlobalStats.InitProject(ProjectName);
     }
 
     public override IEnumerator MainLoop()
@@ -41,12 +38,16 @@ public class ProjectModel : BaseActor
             var message = Receive();
             if (message != null)
             {
+                GlobalStats.MessagesReceived[ProjectName]++;
                 if (message is ClientRequestData request)
                 {
+                    GlobalStats.WorkRequests[ProjectName]++;
                     yield return ProcessWorkRequest(request);
                 }
                 else if (message is ClientReplyData reply)
                 {
+                    GlobalStats.ResultsReceived[ProjectName]++;
+                    GlobalStats.DsUploads[ProjectName]++;
                     _validationQueue.Enqueue(reply);
                 }
             }
@@ -90,6 +91,7 @@ public class ProjectModel : BaseActor
             
             if (workToSend.Any())
             {
+                GlobalStats.ResultsSent[ProjectName] += workToSend.Count;
                 var workToSendSet = new HashSet<WorkunitData>(workToSend);
                 var newQueue = new Queue<WorkunitData>(_readyWorkQueue.Where(w => !workToSendSet.Contains(w)));
                 
@@ -108,12 +110,12 @@ public class ProjectModel : BaseActor
 
     private IEnumerator TaskGeneratorLoop()
     {
-        while (_tasksCreated < _config.InitialTaskCount)
+        while (GlobalStats.WorkunitsCreated[ProjectName] < _config.InitialTaskCount)
         {
-            var taskName = $"Task-{_tasksCreated}";
+            var taskName = $"Task-{GlobalStats.WorkunitsCreated[ProjectName]}";
             var task = new TaskModel(taskName, _config);
             _taskDatabase.Add(taskName, task);
-            _tasksCreated++;
+            GlobalStats.WorkunitsCreated[ProjectName]++;
         }
         yield break; 
     }
@@ -130,6 +132,7 @@ public class ProjectModel : BaseActor
             while (task.CanCreateInitialWork())
             {
                 _readyWorkQueue.Enqueue(task.CreateWorkunit());
+                GlobalStats.ResultsCreated[ProjectName]++;
             }
         }
 
@@ -144,6 +147,7 @@ public class ProjectModel : BaseActor
                     if (task.CanCreateMoreWork()) // Check against absolute max
                     {
                         _readyWorkQueue.Enqueue(task.CreateWorkunit());
+                        GlobalStats.ResultsCreated[ProjectName]++;
                     }
                 }
                 // Yield to process one per frame to avoid freezing if the error queue is large
@@ -164,7 +168,8 @@ public class ProjectModel : BaseActor
             if (_validationQueue.Count > 0)
             {
                 var reply = _validationQueue.Dequeue();
-                
+                GlobalStats.ResultsAnalyzed[ProjectName]++;
+
                 if (_taskDatabase.TryGetValue(reply.WorkunitName, out var task))
                 {
                     var workunit = task.Workunits.FirstOrDefault(w => w.workunitId == reply.ResultId);
@@ -174,17 +179,26 @@ public class ProjectModel : BaseActor
 
                     var isTimeout = workunit.deadlineTick < TimeTickSystem.Instance.CurTick;
                     
+                    if (isTimeout)
+                    {
+                        GlobalStats.ResultsLate[ProjectName]++;
+                    }
+
                     if (reply.status == WorkunitStatus.Success && !isTimeout)
                     {
                         task.SuccessResults++;
+                        GlobalStats.ResultsSuccess[ProjectName]++;
                         if (reply.result == WorkunitResult.Correct)
                         {
                             task.ValidResults++;
+                            GlobalStats.ResultsValid[ProjectName]++;
+                            GlobalStats.TotalCredit[ProjectName] += reply.credits;
                         }
                     }
                     else
                     {
                         task.ErrorResults++;
+                        GlobalStats.ResultsError[ProjectName]++;
                     }
 
                     if (task.CurrentState == TaskModel.State.InProgress)
@@ -214,6 +228,24 @@ public class ProjectModel : BaseActor
                         }
                     }
                 }
+                else
+                {
+                    // This is a late reply for an already assimilated task.
+                    GlobalStats.ResultsLate[ProjectName]++;
+                    if (reply.status == WorkunitStatus.Success)
+                    {
+                        GlobalStats.ResultsSuccess[ProjectName]++;
+                        if (reply.result == WorkunitResult.Correct)
+                        {
+                            GlobalStats.ResultsValid[ProjectName]++;
+                            GlobalStats.TotalCredit[ProjectName] += reply.credits;
+                        }
+                    }
+                    else
+                    {
+                        GlobalStats.ResultsError[ProjectName]++;
+                    }
+                }
             }
             else
             {
@@ -231,24 +263,15 @@ public class ProjectModel : BaseActor
                 var taskToAssimilate = _assimilationQueue.Dequeue();
 
               
-                if (taskToAssimilate.CurrentState != TaskModel.State.InProgress &&
-                    taskToAssimilate.ReceivedResults >= taskToAssimilate.Workunits.Count)
+                if (taskToAssimilate.CurrentState == TaskModel.State.Valid)
                 {
-                    if (taskToAssimilate.CurrentState == TaskModel.State.Valid)
-                    {
-                        StatTasksValid++;
-                    }
-                    else
-                    {
-                        StatTasksError++;
-                    }
-                    _taskDatabase.Remove(taskToAssimilate.Name);
+                    GlobalStats.WorkunitsValid[ProjectName]++;
                 }
                 else
                 {
-                
-                    _assimilationQueue.Enqueue(taskToAssimilate);
+                    GlobalStats.WorkunitsError[ProjectName]++;
                 }
+                _taskDatabase.Remove(taskToAssimilate.Name);
             }
             
             yield return new WaitForTicks(100); 

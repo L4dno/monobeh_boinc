@@ -30,3 +30,6 @@
 sysinfo.txt
 */CM/*
 CM.meta
+/SimulationOutput/*
+!/SimulationOutput/Analytics/
+!/SimulationOutput/Analytics/**

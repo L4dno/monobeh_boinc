@@ -71,11 +71,10 @@ public partial class SimulationManager
                 {
                     
                     int inProgress = project.TaskDatabase.Values.Count(t => t.CurrentState == TaskModel.State.InProgress);
-                    int validInDb = project.TaskDatabase.Values.Count(t => t.CurrentState == TaskModel.State.Valid);
-                    int errorInDb = project.TaskDatabase.Values.Count(t => t.CurrentState == TaskModel.State.Error);
+                    
+                    int valid = GlobalStats.WorkunitsValid.ContainsKey(project.ProjectName) ? GlobalStats.WorkunitsValid[project.ProjectName] : 0;
+                    int error = GlobalStats.WorkunitsError.ContainsKey(project.ProjectName) ? GlobalStats.WorkunitsError[project.ProjectName] : 0;
 
-                    int valid = validInDb + project.StatTasksValid;
-                    int error = errorInDb + project.StatTasksError;
                     int completed = valid + error;
                     int totalTasks = inProgress + completed;
 

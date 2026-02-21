@@ -82,6 +82,8 @@ public partial class SimulationManager : MonoBehaviour
         {
             hosts.Add(new HostModel(_config.ProjectConfig.ServerPowerGflops, hostId));
         }
+        
+        GlobalStats.TotalPower = 0;
         for (int i = 0; i < _config.GroupConfig.NumberOfClients; i++, hostId++)
         {
             float power = RandomUtils.GetDistribution(
@@ -89,6 +91,7 @@ public partial class SimulationManager : MonoBehaviour
                  _config.GroupConfig.RandomConfig.PowerA, 
                  _config.GroupConfig.RandomConfig.PowerB);
             power = Mathf.Clamp(power, _config.GroupConfig.MinSpeed, _config.GroupConfig.MaxSpeed);
+            GlobalStats.TotalPower += (long)power;
             hosts.Add(new HostModel(power, hostId));
         }
     }

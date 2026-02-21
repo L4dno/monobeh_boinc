@@ -58,6 +58,7 @@ public class ClientModel : BaseActor
                                        _config.RandomConfig.HostAvailabilityA,
                                        _config.RandomConfig.HostAvailabilityB
                                    ) * 3600);
+            GlobalStats.TotalAvailableTime += onlineDuration;
             yield return new WaitForTicks(onlineDuration);
 
             // GOING OFFLINE
@@ -87,6 +88,7 @@ public class ClientModel : BaseActor
                                         _config.RandomConfig.HostNonavailabilityB
                                     ) * 3600);
 
+            GlobalStats.TotalNotAvailableTime += offlineDuration;
             yield return new WaitForTicks(offlineDuration);
         }
     }
@@ -175,7 +177,13 @@ public class ClientModel : BaseActor
                 project.InProgressTasks.Add(workunit);
                 yield return new Activity(workunit.durationInFlops, this.Host);
                 project.InProgressTasks.Remove(workunit);
-                
+
+                if (!GlobalStats.TotalTasksExecuted.ContainsKey(project.Name))
+                {
+                    GlobalStats.TotalTasksExecuted[project.Name] = 0;
+                }
+                GlobalStats.TotalTasksExecuted[project.Name]++;
+
                 var wallTime = TimeTickSystem.Instance.CurTick - _lastWallTick;
                 project.WallCpuTime += wallTime;
                 _lastWallTick = TimeTickSystem.Instance.CurTick;
@@ -213,7 +221,13 @@ public class ClientModel : BaseActor
     {
         while (proj.CompletedTasks.Count > 0)
         {
-            yield return Push(proj.ProjectActorName, proj.CompletedTasks.Dequeue());
+            var reply = proj.CompletedTasks.Dequeue();
+            if (!GlobalStats.TotalTasksChecked.ContainsKey(proj.Name))
+            {
+                GlobalStats.TotalTasksChecked[proj.Name] = 0;
+            }
+            GlobalStats.TotalTasksChecked[proj.Name]++;
+            yield return Push(proj.ProjectActorName, reply);
         }
 
         var request = new ClientRequestData(this.ActorName, (int)Host.HostPower, workPercentage);
@@ -236,6 +250,12 @@ public class ClientModel : BaseActor
         {
             if (serverReply.workunits.Any())
             {
+                if (!GlobalStats.TotalTasksReceived.ContainsKey(proj.Name))
+                {
+                    GlobalStats.TotalTasksReceived[proj.Name] = 0;
+                }
+                GlobalStats.TotalTasksReceived[proj.Name] += serverReply.workunits.Count;
+
                 _currentConnectionInterval /= 2;
                 if (_currentConnectionInterval < _baseConnectionInterval)
                 {
@@ -377,6 +397,11 @@ public class ClientModel : BaseActor
             var remainingTime = taskToRun.Item1.durationInFlops / Host.HostPower;
             if (TimeTickSystem.Instance.CurTick + remainingTime > taskToRun.Item1.deadlineTick)
             {
+                if (!GlobalStats.TotalTasksMissed.ContainsKey(taskToRun.Item2.Name))
+                {
+                    GlobalStats.TotalTasksMissed[taskToRun.Item2.Name] = 0;
+                }
+                GlobalStats.TotalTasksMissed[taskToRun.Item2.Name]++;
                 // Task will be missed, discard it.
                 return null; 
             }
