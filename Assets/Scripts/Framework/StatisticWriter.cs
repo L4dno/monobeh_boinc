@@ -87,6 +87,88 @@ public partial class SimulationManager
             Debug.LogError($"Error writing statistics: {ex.Message}");
         }
     }
+
+    public SimConfigData CreateConfigData(SimConfig simConfig)
+    {
+        var simConfigData = new SimConfigData
+        {
+            SimLength = simConfig.SimLength,
+            NumberOfProjects = simConfig.NumberOfProjects,
+            NumberOfGroups = simConfig.NumberOfGroups,
+            DeterministicSeed = simConfig.DeterministicSeed,
+            StatisticsFileName = simConfig.StatisticsFileName
+        };
+
+        if (simConfig.ProjectConfig != null)
+        {
+            simConfigData.ProjectConfig = new ProjectConfigData
+            {
+                ProjectName = simConfig.ProjectConfig.ProjectName,
+                Priority = simConfig.ProjectConfig.Priority,
+                ProjectId = simConfig.ProjectConfig.ProjectId,
+                ServerPowerGflops = simConfig.ProjectConfig.ServerPowerGflops,
+                DelayBound = simConfig.ProjectConfig.DelayBound,
+                MinQuorum = simConfig.ProjectConfig.MinQuorum,
+                InitialTaskCount = simConfig.ProjectConfig.InitialTaskCount,
+                SuccessPercentage = simConfig.ProjectConfig.SuccessPercentage,
+                CanonicalPercentage = simConfig.ProjectConfig.CanonicalPercentage
+            };
+
+            if (simConfig.ProjectConfig.TaskConfig != null)
+            {
+                simConfigData.ProjectConfig.TaskConfig = new TaskConfigData
+                {
+                    TaskPowerDistri = simConfig.ProjectConfig.TaskConfig.TaskPowerDistri,
+                    MinTaskGflops = simConfig.ProjectConfig.TaskConfig.MinTaskGflops,
+                    MaxTaskGflops = simConfig.ProjectConfig.TaskConfig.MaxTaskGflops,
+                    InputFileSize = simConfig.ProjectConfig.TaskConfig.InputFileSize,
+                    OutputFileSize = simConfig.ProjectConfig.TaskConfig.OutputFileSize,
+                    InitialCreatedWorkunits = simConfig.ProjectConfig.TaskConfig.InitialCreatedWorkunits,
+                    MaxCreatedWorkunits = simConfig.ProjectConfig.TaskConfig.MaxCreatedWorkunits,
+                    MaxErrorWorkunits = simConfig.ProjectConfig.TaskConfig.MaxErrorWorkunits,
+                    MaxSuccessWorkunits = simConfig.ProjectConfig.TaskConfig.MaxSuccessWorkunits
+                };
+            }
+        }
+
+        if (simConfig.GroupConfig != null)
+        {
+            simConfigData.GroupConfig = new GroupConfigData
+            {
+                NumberOfClients = simConfig.GroupConfig.NumberOfClients,
+                MaxSpeed = simConfig.GroupConfig.MaxSpeed,
+                MinSpeed = simConfig.GroupConfig.MinSpeed,
+                ConnectionInterval = simConfig.GroupConfig.ConnectionInterval,
+                SchedulingInterval = simConfig.GroupConfig.SchedulingInterval,
+                ServerLatency = simConfig.GroupConfig.ServerLatency,
+                ServerBandwidth = simConfig.GroupConfig.ServerBandwidth
+            };
+
+            if (simConfig.GroupConfig.RandomConfig != null)
+            {
+                simConfigData.GroupConfig.RandomConfig = new RandomConfigData
+                {
+                    HostPowerDistri = simConfig.GroupConfig.RandomConfig.HostPowerDistri,
+                    PowerA = simConfig.GroupConfig.RandomConfig.PowerA,
+                    PowerB = simConfig.GroupConfig.RandomConfig.PowerB,
+                    HostAvailabilityDistri = simConfig.GroupConfig.RandomConfig.HostAvailabilityDistri,
+                    HostAvailabilityA = simConfig.GroupConfig.RandomConfig.HostAvailabilityA,
+                    HostAvailabilityB = simConfig.GroupConfig.RandomConfig.HostAvailabilityB,
+                    HostNonavailabilityDistri = simConfig.GroupConfig.RandomConfig.HostNonavailabilityDistri,
+                    HostNonavailabilityA = simConfig.GroupConfig.RandomConfig.HostNonavailabilityA,
+                    HostNonavailabilityB = simConfig.GroupConfig.RandomConfig.HostNonavailabilityB,
+                    CpuAvailabilityDistri = simConfig.GroupConfig.RandomConfig.CpuAvailabilityDistri,
+                    CpuAvailabilityA = simConfig.GroupConfig.RandomConfig.CpuAvailabilityA,
+                    CpuAvailabilityB = simConfig.GroupConfig.RandomConfig.CpuAvailabilityB,
+                    CpuNonavailabilityDistri = simConfig.GroupConfig.RandomConfig.CpuNonavailabilityDistri,
+                    CpuNonavailabilityA = simConfig.GroupConfig.RandomConfig.CpuNonavailabilityA,
+                    CpuNonavailabilityB = simConfig.GroupConfig.RandomConfig.CpuNonavailabilityB
+                };
+            }
+        }
+
+        return simConfigData;
+    }
 }
 
 }
