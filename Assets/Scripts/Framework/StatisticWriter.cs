@@ -3,40 +3,65 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Newtonsoft.Json;
+
 
 public partial class SimulationManager
 {
     private class StatisticWriter
     {
-    private readonly string _filePath;
+    private readonly string _outputDir;
     private const int Interval = 3600;
 
-    public StatisticWriter(string filePath)
+    private SimConfigData _outputParams;
+
+    const string WORKUNITS_FILE = "workunits.csv";
+    const string PARAMS_FILE = "parameters.json";
+
+    public StatisticWriter(string experimentName, SimConfig simConfig)
     {
-        _filePath = filePath;
-        InitializeFile();
+        // creating dir for the current run
+        string outputRoot = Application.persistentDataPath;
+
+        int runNumber = 1;
+        string sessionDir;
+        while (true)
+        {
+            string folderName = $"{experimentName}_{runNumber}";
+            sessionDir = Path.Combine(outputRoot, folderName);
+            if (!Directory.Exists(sessionDir))
+            {
+                break;
+            }
+            runNumber++;
+        }
+
+        Directory.CreateDirectory(sessionDir);
+        _outputDir = sessionDir;
+
+        Debug.LogWarning($"Statistics dir path: {_outputDir}");
+        _outputParams = CreateConfigData(simConfig);
+        InitializeDirectory();
     }
 
-    private void InitializeFile()
+    private void InitializeDirectory()
     {
-        try
+        //creating params file and init others
+        string workunitsPath = Path.Combine(_outputDir, WORKUNITS_FILE);
+        string paramsPath = Path.Combine(_outputDir, PARAMS_FILE);
+     
+        using (StreamWriter file = new StreamWriter(workunitsPath, false))
         {
-            
-            if (File.Exists(_filePath))
-            {
-                File.Delete(_filePath);
-            }
+            file.WriteLine("timestamp,project_name,tasks_total,tasks_inprogress,tasks_completed,tasks_valid,tasks_error");
+        }
+        
+        string paramsJson = JsonConvert.SerializeObject(_outputParams);
+        using (StreamWriter file = new StreamWriter(paramsPath, false))
+        {
+            file.WriteLine(paramsJson);
+        }
 
-            
-            using (StreamWriter file = new StreamWriter(_filePath, false))
-            {
-                file.WriteLine("timestamp,project_name,tasks_total,tasks_inprogress,tasks_completed,tasks_valid,tasks_error");
-            }
-        }
-        catch (System.Exception ex)
-        {
-            Debug.LogError($"Error initializing stats file: {ex.Message}");
-        }
+
     }
 
     public IEnumerator WriteTaskCsv()
@@ -58,9 +83,11 @@ public partial class SimulationManager
 
     private void WriteStatsToFile()
     {
+        string filePath = Path.Combine(_outputDir, WORKUNITS_FILE);
+
         try
         {
-            using (StreamWriter file = new StreamWriter(_filePath, true))
+            using (StreamWriter file = new StreamWriter(filePath, true))
             {
                 double timestamp = TimeTickSystem.Instance.CurTick;
 
@@ -90,6 +117,7 @@ public partial class SimulationManager
 
     public SimConfigData CreateConfigData(SimConfig simConfig)
     {
+
         var simConfigData = new SimConfigData
         {
             SimLength = simConfig.SimLength,

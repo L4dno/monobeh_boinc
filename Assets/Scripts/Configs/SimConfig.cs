@@ -21,5 +21,5 @@ public class SimConfig : ScriptableObject
     public int DeterministicSeed {get; private set;} = 6523446;
 
     [field: SerializeField]
-    public string StatisticsFileName { get; private set; } = "statistics.csv";
+    public string StatisticsFileName { get; private set; } = "statistics";
 }

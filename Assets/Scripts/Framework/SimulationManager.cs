@@ -5,7 +5,6 @@ using UnityEngine;
 
 using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using System;
 
 public partial class SimulationManager : MonoBehaviour
@@ -35,13 +34,7 @@ public partial class SimulationManager : MonoBehaviour
     private void Start()
     {
         
-        string outputRoot = Path.Combine(Directory.GetParent(Application.dataPath).FullName, "SimulationOutput");
-        string sessionDir = Path.Combine(outputRoot, DateTime.Now.ToString("yyyyMMdd_HHmmss"));
-        Directory.CreateDirectory(sessionDir);
-        string filePath = Path.Combine(sessionDir, Instance._config.StatisticsFileName);
-        Debug.LogWarning($"Statistics file path: {filePath}");
-        
-        statisticWriter = new StatisticWriter(filePath);
+        statisticWriter = new StatisticWriter(_config.StatisticsFileName, _config);
         StartCoroutine(statisticWriter.WriteTaskCsv());
     
         // start all actors main loop coroutine
