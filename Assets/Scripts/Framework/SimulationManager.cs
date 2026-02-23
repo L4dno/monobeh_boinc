@@ -36,6 +36,7 @@ public partial class SimulationManager : MonoBehaviour
         
         statisticWriter = new StatisticWriter(_config.StatisticsFileName, _config);
         StartCoroutine(statisticWriter.WriteTaskCsv());
+        StartCoroutine(statisticWriter.WriteHostCsv());
     
         // start all actors main loop coroutine
         foreach (var actor in Actors.Values)

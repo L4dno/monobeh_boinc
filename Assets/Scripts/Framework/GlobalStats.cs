@@ -28,6 +28,10 @@ public static class GlobalStats
     public static long TotalPower;
     public static float TotalAvailableTime;
     public static float TotalNotAvailableTime;
+
+    public static Dictionary<int, int> TotalBusyTimeByHost = new Dictionary<int, int>();
+    public static Dictionary<int, int> TotalIdleTimeByHost = new Dictionary<int, int>();
+    public static Dictionary<int, int> TotalSuspendedTimeByHost = new Dictionary<int, int>();
     
     public static Dictionary<string, int> DsUploads = new Dictionary<string, int>();
     public static Dictionary<string, Dictionary<int, int>> Rfiles = new Dictionary<string, Dictionary<int, int>>();

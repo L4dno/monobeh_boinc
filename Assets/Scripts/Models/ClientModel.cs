@@ -3,6 +3,13 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
+public enum HostState
+{
+    Idle,
+    Busy,
+    Suspended
+}
+
 public class ClientModel : BaseActor
 {
     private readonly GroupConfig _config;
@@ -14,6 +21,9 @@ public class ClientModel : BaseActor
     private readonly List<(WorkunitData Workunit, ClientProject Project)> _deadlineMissedTasks = new List<(WorkunitData, ClientProject)>();
     private Coroutine _executorCoroutine;
     
+    private HostState _currentState;
+    private int _lastStateChangeTick;
+
     private readonly float _baseConnectionInterval;
     private float _currentConnectionInterval;
     private const float MAX_CONNECTION_INTERVAL = 86400;
@@ -30,6 +40,47 @@ public class ClientModel : BaseActor
             _projects.Add(clientProject.Name, clientProject);
             _sumPriority += clientProject.Priority;
         }
+
+        _currentState = HostState.Suspended;
+        _lastStateChangeTick = (int)TimeTickSystem.Instance.CurTick;
+        if (!GlobalStats.TotalSuspendedTimeByHost.ContainsKey(Host.HostId))
+        {
+            GlobalStats.TotalSuspendedTimeByHost[Host.HostId] = 0;
+            GlobalStats.TotalIdleTimeByHost[Host.HostId] = 0;
+            GlobalStats.TotalBusyTimeByHost[Host.HostId] = 0;
+        }
+    }
+
+    private void SetState(HostState newState)
+    {
+        if (_currentState == newState)
+        {
+            return;
+        }
+
+        int currentTick = (int)TimeTickSystem.Instance.CurTick;
+        int duration = currentTick - _lastStateChangeTick;
+
+        if (duration < 0)
+        {
+            return;
+        }
+
+        switch (_currentState)
+        {
+            case HostState.Idle:
+                GlobalStats.TotalIdleTimeByHost[Host.HostId] += duration;
+                break;
+            case HostState.Busy:
+                GlobalStats.TotalBusyTimeByHost[Host.HostId] += duration;
+                break;
+            case HostState.Suspended:
+                GlobalStats.TotalSuspendedTimeByHost[Host.HostId] += duration;
+                break;
+        }
+
+        _currentState = newState;
+        _lastStateChangeTick = currentTick;
     }
 
     public override IEnumerator MainLoop()
@@ -49,6 +100,7 @@ public class ClientModel : BaseActor
         {
             // GOING ONLINE
             _isOnline = true;
+            SetState(HostState.Idle);
             if (_executorCoroutine == null)
             {
                 _executorCoroutine = SimulationManager.Instance.StartCoroutine(ExecutorLoop());
@@ -63,6 +115,7 @@ public class ClientModel : BaseActor
 
             // GOING OFFLINE
             _isOnline = false;
+            SetState(HostState.Suspended);
             if (_executorCoroutine != null)
             {
                 SimulationManager.Instance.StopCoroutine(_executorCoroutine);
@@ -175,7 +228,9 @@ public class ClientModel : BaseActor
                 var (workunit, project) = taskToExecute.Value;
                 
                 project.InProgressTasks.Add(workunit);
+                SetState(HostState.Busy);
                 yield return new Activity(workunit.durationInFlops, this.Host);
+                SetState(HostState.Idle);
                 project.InProgressTasks.Remove(workunit);
 
                 if (!GlobalStats.TotalTasksExecuted.ContainsKey(project.Name))
