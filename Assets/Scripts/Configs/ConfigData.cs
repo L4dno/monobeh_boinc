@@ -16,8 +16,6 @@ public class ProjectConfigData
     public int ProjectId = 0;
     public TaskConfigData TaskConfig;
     public float ServerPowerGflops = 12.0f;
-    public int DelayBound = 1000000000;
-    public int MinQuorum = 2;
     public int InitialTaskCount = 100;
     public int SuccessPercentage = 95;
     public int CanonicalPercentage = 95;
@@ -65,4 +63,6 @@ public class TaskConfigData
     public int MaxCreatedWorkunits = 4;
     public int MaxErrorWorkunits = 2;
     public int MaxSuccessWorkunits = 3;
+    public int DelayBound = 1000000000;
+    public int MinQuorum = 2;
 }

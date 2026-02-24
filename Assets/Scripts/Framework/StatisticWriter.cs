@@ -156,8 +156,8 @@ public partial class SimulationManager
                         
                         int inProgress = project.TaskDatabase.Values.Count(t => t.CurrentState == TaskModel.State.InProgress);
                         
-                        int valid = GlobalStats.WorkunitsValid.ContainsKey(project.ProjectName) ? GlobalStats.WorkunitsValid[project.ProjectName] : 0;
-                        int error = GlobalStats.WorkunitsError.ContainsKey(project.ProjectName) ? GlobalStats.WorkunitsError[project.ProjectName] : 0;
+                        int valid = GlobalStats.TasksValid.ContainsKey(project.ProjectName) ? GlobalStats.TasksValid[project.ProjectName] : 0;
+                        int error = GlobalStats.TasksError.ContainsKey(project.ProjectName) ? GlobalStats.TasksError[project.ProjectName] : 0;
 
                         int completed = valid + error;
                         int totalTasks = inProgress + completed;
@@ -192,8 +192,6 @@ public partial class SimulationManager
                     Priority = simConfig.ProjectConfig.Priority,
                     ProjectId = simConfig.ProjectConfig.ProjectId,
                     ServerPowerGflops = simConfig.ProjectConfig.ServerPowerGflops,
-                    DelayBound = simConfig.ProjectConfig.DelayBound,
-                    MinQuorum = simConfig.ProjectConfig.MinQuorum,
                     InitialTaskCount = simConfig.ProjectConfig.InitialTaskCount,
                     SuccessPercentage = simConfig.ProjectConfig.SuccessPercentage,
                     CanonicalPercentage = simConfig.ProjectConfig.CanonicalPercentage
@@ -211,7 +209,9 @@ public partial class SimulationManager
                         InitialCreatedWorkunits = simConfig.ProjectConfig.TaskConfig.InitialCreatedWorkunits,
                         MaxCreatedWorkunits = simConfig.ProjectConfig.TaskConfig.MaxCreatedWorkunits,
                         MaxErrorWorkunits = simConfig.ProjectConfig.TaskConfig.MaxErrorWorkunits,
-                        MaxSuccessWorkunits = simConfig.ProjectConfig.TaskConfig.MaxSuccessWorkunits
+                        MaxSuccessWorkunits = simConfig.ProjectConfig.TaskConfig.MaxSuccessWorkunits,
+                        DelayBound = simConfig.ProjectConfig.TaskConfig.DelayBound,
+                        MinQuorum = simConfig.ProjectConfig.TaskConfig.MinQuorum
                     };
                 }
             }

@@ -22,6 +22,12 @@ public class TaskConfig : ScriptableObject
 
     [field: SerializeField]
     public int InitialCreatedWorkunits { get; private set; } = 2;
+
+     [field: SerializeField]
+    public int DelayBound { get; private set; } = 1000000000; 
+
+    [field: SerializeField]
+    public int MinQuorum { get; private set; } = 2;
     
     [field: SerializeField]
     public int MaxCreatedWorkunits { get; private set; } = 4;

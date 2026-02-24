@@ -18,11 +18,7 @@ public class ProjectConfig : ScriptableObject
     [field: SerializeField]
     public float ServerPowerGflops { get; private set; } = 12.0f; 
 
-    [field: SerializeField]
-    public int DelayBound { get; private set; } = 1000000000; 
-
-    [field: SerializeField]
-    public int MinQuorum { get; private set; } = 2;
+   
 
     [field: SerializeField]
     [Tooltip("tasks that is replicated to wu's")]

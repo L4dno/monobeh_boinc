@@ -46,7 +46,7 @@ public class ProjectModel : BaseActor
                 }
                 else if (message is ClientReplyData reply)
                 {
-                    GlobalStats.ResultsReceived[ProjectName]++;
+                    GlobalStats.WorkunitResultsReceived[ProjectName]++;
                     GlobalStats.DsUploads[ProjectName]++;
                     _validationQueue.Enqueue(reply);
                 }
@@ -91,7 +91,7 @@ public class ProjectModel : BaseActor
             
             if (workToSend.Any())
             {
-                GlobalStats.ResultsSent[ProjectName] += workToSend.Count;
+                GlobalStats.WorkunitsSent[ProjectName] += workToSend.Count;
                 var workToSendSet = new HashSet<WorkunitData>(workToSend);
                 var newQueue = new Queue<WorkunitData>(_readyWorkQueue.Where(w => !workToSendSet.Contains(w)));
                 
@@ -110,12 +110,12 @@ public class ProjectModel : BaseActor
 
     private IEnumerator TaskGeneratorLoop()
     {
-        while (GlobalStats.WorkunitsCreated[ProjectName] < _config.InitialTaskCount)
+        while (GlobalStats.TasksCreated[ProjectName] < _config.InitialTaskCount)
         {
-            var taskName = $"Task-{GlobalStats.WorkunitsCreated[ProjectName]}";
-            var task = new TaskModel(taskName, _config);
+            var taskName = $"Task-{GlobalStats.TasksCreated[ProjectName]}";
+            var task = new TaskModel(taskName, _config.TaskConfig);
             _taskDatabase.Add(taskName, task);
-            GlobalStats.WorkunitsCreated[ProjectName]++;
+            GlobalStats.TasksCreated[ProjectName]++;
         }
         yield break; 
     }
@@ -132,7 +132,7 @@ public class ProjectModel : BaseActor
             while (task.CanCreateInitialWork())
             {
                 _readyWorkQueue.Enqueue(task.CreateWorkunit());
-                GlobalStats.ResultsCreated[ProjectName]++;
+                GlobalStats.WorkunitsCreated[ProjectName]++;
             }
         }
 
@@ -147,7 +147,7 @@ public class ProjectModel : BaseActor
                     if (task.CanCreateMoreWork()) // Check against absolute max
                     {
                         _readyWorkQueue.Enqueue(task.CreateWorkunit());
-                        GlobalStats.ResultsCreated[ProjectName]++;
+                        GlobalStats.WorkunitsCreated[ProjectName]++;
                     }
                 }
                 // Yield to process one per frame to avoid freezing if the error queue is large
@@ -168,7 +168,7 @@ public class ProjectModel : BaseActor
             if (_validationQueue.Count > 0)
             {
                 var reply = _validationQueue.Dequeue();
-                GlobalStats.ResultsAnalyzed[ProjectName]++;
+                GlobalStats.WorkunitResultsAnalyzed[ProjectName]++;
 
                 if (_taskDatabase.TryGetValue(reply.WorkunitName, out var task))
                 {
@@ -181,30 +181,30 @@ public class ProjectModel : BaseActor
                     
                     if (isTimeout)
                     {
-                        GlobalStats.ResultsLate[ProjectName]++;
+                        GlobalStats.LateWorkunitResults[ProjectName]++;
                     }
 
                     if (reply.status == WorkunitStatus.Success && !isTimeout)
                     {
                         task.SuccessResults++;
-                        GlobalStats.ResultsSuccess[ProjectName]++;
+                        GlobalStats.SuccessfulWorkunitResults[ProjectName]++;
                         if (reply.result == WorkunitResult.Correct)
                         {
                             task.ValidResults++;
-                            GlobalStats.ResultsValid[ProjectName]++;
+                            GlobalStats.ValidWorkunitResults[ProjectName]++;
                             GlobalStats.TotalCredit[ProjectName] += reply.credits;
                         }
                     }
                     else
                     {
                         task.ErrorResults++;
-                        GlobalStats.ResultsError[ProjectName]++;
+                        GlobalStats.ErrorWorkunitResults[ProjectName]++;
                     }
 
                     if (task.CurrentState == TaskModel.State.InProgress)
                     {
                         bool isFinished = false;
-                        if (task.ValidResults >= _config.MinQuorum)
+                        if (task.ValidResults >= task.MinQuorum)
                         {
                             task.CurrentState = TaskModel.State.Valid;
                             isFinished = true;
@@ -231,19 +231,19 @@ public class ProjectModel : BaseActor
                 else
                 {
                     // This is a late reply for an already assimilated task.
-                    GlobalStats.ResultsLate[ProjectName]++;
+                    GlobalStats.LateWorkunitResults[ProjectName]++;
                     if (reply.status == WorkunitStatus.Success)
                     {
-                        GlobalStats.ResultsSuccess[ProjectName]++;
+                        GlobalStats.SuccessfulWorkunitResults[ProjectName]++;
                         if (reply.result == WorkunitResult.Correct)
                         {
-                            GlobalStats.ResultsValid[ProjectName]++;
+                            GlobalStats.ValidWorkunitResults[ProjectName]++;
                             GlobalStats.TotalCredit[ProjectName] += reply.credits;
                         }
                     }
                     else
                     {
-                        GlobalStats.ResultsError[ProjectName]++;
+                        GlobalStats.ErrorWorkunitResults[ProjectName]++;
                     }
                 }
             }
@@ -265,11 +265,11 @@ public class ProjectModel : BaseActor
               
                 if (taskToAssimilate.CurrentState == TaskModel.State.Valid)
                 {
-                    GlobalStats.WorkunitsValid[ProjectName]++;
+                    GlobalStats.TasksValid[ProjectName]++;
                 }
                 else
                 {
-                    GlobalStats.WorkunitsError[ProjectName]++;
+                    GlobalStats.TasksError[ProjectName]++;
                 }
                 _taskDatabase.Remove(taskToAssimilate.Name);
             }

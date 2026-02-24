@@ -5,18 +5,18 @@ public static class GlobalStats
     // Project-level statistics, keyed by project name
     public static Dictionary<string, int> MessagesReceived = new Dictionary<string, int>();
     public static Dictionary<string, int> WorkRequests = new Dictionary<string, int>();
-    public static Dictionary<string, int> ResultsCreated = new Dictionary<string, int>();
-    public static Dictionary<string, int> ResultsSent = new Dictionary<string, int>();
-    public static Dictionary<string, int> ResultsValid = new Dictionary<string, int>();
-    public static Dictionary<string, int> ResultsReceived = new Dictionary<string, int>();
-    public static Dictionary<string, int> ResultsAnalyzed = new Dictionary<string, int>();
-    public static Dictionary<string, int> ResultsSuccess = new Dictionary<string, int>();
-    public static Dictionary<string, int> ResultsError = new Dictionary<string, int>();
-    public static Dictionary<string, int> ResultsLate = new Dictionary<string, int>();
-    public static Dictionary<string, long> TotalCredit = new Dictionary<string, long>();
     public static Dictionary<string, int> WorkunitsCreated = new Dictionary<string, int>();
-    public static Dictionary<string, int> WorkunitsValid = new Dictionary<string, int>();
-    public static Dictionary<string, int> WorkunitsError = new Dictionary<string, int>();
+    public static Dictionary<string, int> WorkunitsSent = new Dictionary<string, int>();
+    public static Dictionary<string, int> ValidWorkunitResults = new Dictionary<string, int>();
+    public static Dictionary<string, int> WorkunitResultsReceived = new Dictionary<string, int>();
+    public static Dictionary<string, int> WorkunitResultsAnalyzed = new Dictionary<string, int>();
+    public static Dictionary<string, int> SuccessfulWorkunitResults = new Dictionary<string, int>();
+    public static Dictionary<string, int> ErrorWorkunitResults = new Dictionary<string, int>();
+    public static Dictionary<string, int> LateWorkunitResults = new Dictionary<string, int>();
+    public static Dictionary<string, long> TotalCredit = new Dictionary<string, long>();
+    public static Dictionary<string, int> TasksCreated = new Dictionary<string, int>();
+    public static Dictionary<string, int> TasksValid = new Dictionary<string, int>();
+    public static Dictionary<string, int> TasksError = new Dictionary<string, int>();
 
     // Client-level statistics per project, keyed by project name
     public static Dictionary<string, int> TotalTasksChecked = new Dictionary<string, int>();
@@ -40,18 +40,18 @@ public static class GlobalStats
     {
         MessagesReceived[projectName] = 0;
         WorkRequests[projectName] = 0;
-        ResultsCreated[projectName] = 0;
-        ResultsSent[projectName] = 0;
-        ResultsValid[projectName] = 0;
-        ResultsReceived[projectName] = 0;
-        ResultsAnalyzed[projectName] = 0;
-        ResultsSuccess[projectName] = 0;
-        ResultsError[projectName] = 0;
-        ResultsLate[projectName] = 0;
-        TotalCredit[projectName] = 0;
         WorkunitsCreated[projectName] = 0;
-        WorkunitsValid[projectName] = 0;
-        WorkunitsError[projectName] = 0;
+        WorkunitsSent[projectName] = 0;
+        ValidWorkunitResults[projectName] = 0;
+        WorkunitResultsReceived[projectName] = 0;
+        WorkunitResultsAnalyzed[projectName] = 0;
+        SuccessfulWorkunitResults[projectName] = 0;
+        ErrorWorkunitResults[projectName] = 0;
+        LateWorkunitResults[projectName] = 0;
+        TotalCredit[projectName] = 0;
+        TasksCreated[projectName] = 0;
+        TasksValid[projectName] = 0;
+        TasksError[projectName] = 0;
         TotalTasksChecked[projectName] = 0;
         TotalTasksExecuted[projectName] = 0;
         TotalTasksReceived[projectName] = 0;
@@ -64,18 +64,18 @@ public static class GlobalStats
     {
         MessagesReceived.Clear();
         WorkRequests.Clear();
-        ResultsCreated.Clear();
-        ResultsSent.Clear();
-        ResultsValid.Clear();
-        ResultsReceived.Clear();
-        ResultsAnalyzed.Clear();
-        ResultsSuccess.Clear();
-        ResultsError.Clear();
-        ResultsLate.Clear();
-        TotalCredit.Clear();
-        WorkunitsValid.Clear();
-        WorkunitsError.Clear();
         WorkunitsCreated.Clear();
+        WorkunitsSent.Clear();
+        ValidWorkunitResults.Clear();
+        WorkunitResultsReceived.Clear();
+        WorkunitResultsAnalyzed.Clear();
+        SuccessfulWorkunitResults.Clear();
+        ErrorWorkunitResults.Clear();
+        LateWorkunitResults.Clear();
+        TotalCredit.Clear();
+        TasksValid.Clear();
+        TasksError.Clear();
+        TasksCreated.Clear();
 
         TotalTasksChecked.Clear();
         TotalTasksExecuted.Clear();
