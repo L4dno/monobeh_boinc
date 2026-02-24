@@ -110,10 +110,13 @@ public class ProjectModel : BaseActor
 
     private IEnumerator TaskGeneratorLoop()
     {
+        Debug.Assert(_config.TaskConfigs.Any(), $"ProjectConfig '{_config.name}' has no TaskConfigs assigned.");
+
         while (GlobalStats.TasksCreated[ProjectName] < _config.InitialTaskCount)
         {
             var taskName = $"Task-{GlobalStats.TasksCreated[ProjectName]}";
-            var task = new TaskModel(taskName, _config.TaskConfig);
+            var selectedTaskConfig = _config.TaskConfigs[Random.Range(0, _config.TaskConfigs.Count)];
+            var task = new TaskModel(taskName, selectedTaskConfig);
             _taskDatabase.Add(taskName, task);
             GlobalStats.TasksCreated[ProjectName]++;
         }
@@ -209,9 +212,9 @@ public class ProjectModel : BaseActor
                             task.CurrentState = TaskModel.State.Valid;
                             isFinished = true;
                         }
-                        else if (task.ErrorResults >= _config.TaskConfig.MaxErrorWorkunits || 
-                                 task.SuccessResults >= _config.TaskConfig.MaxSuccessWorkunits ||
-                                 task.Workunits.Count >= _config.TaskConfig.MaxCreatedWorkunits)
+                        else if (task.ErrorResults >= task.Config.MaxErrorWorkunits ||
+                                 task.SuccessResults >= task.Config.MaxSuccessWorkunits ||
+                                 task.Workunits.Count >= task.Config.MaxCreatedWorkunits)
                         {
                             task.CurrentState = TaskModel.State.Error;
                             isFinished = true;
@@ -226,6 +229,11 @@ public class ProjectModel : BaseActor
                            
                             _errorWorkQueue.Enqueue(workunit);
                         }
+                    }
+                    else if (task.CurrentState == TaskModel.State.Valid && reply.status == WorkunitStatus.Success && reply.result == WorkunitResult.Correct)
+                    {
+                        GlobalStats.ValidWorkunitResults[ProjectName]++;
+                        GlobalStats.TotalCredit[ProjectName] += reply.credits;
                     }
                 }
                 else

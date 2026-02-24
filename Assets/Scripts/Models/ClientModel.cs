@@ -261,7 +261,7 @@ public class ClientModel : BaseActor
                     workunit.ParentTaskName,
                     workunit.workunitId,
                     (int)(workunit.durationInFlops * 0.0001f),
-                    project.Config.TaskConfig.OutputFileSize
+                    workunit.outputByteSize
                 );
                 project.CompletedTasks.Enqueue(reply);
             }

@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 [CreateAssetMenu(fileName = "ProjectConfig", menuName = "Scriptable Objects/ProjectConfig")]
 public class ProjectConfig : ScriptableObject
@@ -13,7 +14,7 @@ public class ProjectConfig : ScriptableObject
     public int ProjectId { get; private set; } = 0;
 
     [field: SerializeField]
-    public TaskConfig TaskConfig { get; private set; }
+    public List<TaskConfig> TaskConfigs { get; private set; }
 
     [field: SerializeField]
     public float ServerPowerGflops { get; private set; } = 12.0f; 

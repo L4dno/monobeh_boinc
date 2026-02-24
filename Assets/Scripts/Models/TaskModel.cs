@@ -8,6 +8,7 @@ public class TaskModel
     public int DelayBound => _config.DelayBound;
     public int MinQuorum => _config.MinQuorum;
 
+    public TaskConfig Config => _config;
     private readonly TaskConfig _config;
 
     private readonly float _taskSizeGflops;
@@ -53,6 +54,7 @@ public class TaskModel
             _workunitsCreated,
             _taskSizeGflops,
             _config.InputFileSize,
+            _config.OutputFileSize,
             TimeTickSystem.Instance.CurTick + _config.DelayBound
         );
         Workunits.Add(workunit);

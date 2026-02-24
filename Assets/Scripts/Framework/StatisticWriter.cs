@@ -197,21 +197,22 @@ public partial class SimulationManager
                     CanonicalPercentage = simConfig.ProjectConfig.CanonicalPercentage
                 };
 
-                if (simConfig.ProjectConfig.TaskConfig != null)
+                if (simConfig.ProjectConfig.TaskConfigs != null && simConfig.ProjectConfig.TaskConfigs.Any())
                 {
+                    var taskConfig = simConfig.ProjectConfig.TaskConfigs[0];
                     simConfigData.ProjectConfig.TaskConfig = new TaskConfigData
                     {
-                        TaskPowerDistri = simConfig.ProjectConfig.TaskConfig.TaskPowerDistri,
-                        MinTaskGflops = simConfig.ProjectConfig.TaskConfig.MinTaskGflops,
-                        MaxTaskGflops = simConfig.ProjectConfig.TaskConfig.MaxTaskGflops,
-                        InputFileSize = simConfig.ProjectConfig.TaskConfig.InputFileSize,
-                        OutputFileSize = simConfig.ProjectConfig.TaskConfig.OutputFileSize,
-                        InitialCreatedWorkunits = simConfig.ProjectConfig.TaskConfig.InitialCreatedWorkunits,
-                        MaxCreatedWorkunits = simConfig.ProjectConfig.TaskConfig.MaxCreatedWorkunits,
-                        MaxErrorWorkunits = simConfig.ProjectConfig.TaskConfig.MaxErrorWorkunits,
-                        MaxSuccessWorkunits = simConfig.ProjectConfig.TaskConfig.MaxSuccessWorkunits,
-                        DelayBound = simConfig.ProjectConfig.TaskConfig.DelayBound,
-                        MinQuorum = simConfig.ProjectConfig.TaskConfig.MinQuorum
+                        TaskPowerDistri = taskConfig.TaskPowerDistri,
+                        MinTaskGflops = taskConfig.MinTaskGflops,
+                        MaxTaskGflops = taskConfig.MaxTaskGflops,
+                        InputFileSize = taskConfig.InputFileSize,
+                        OutputFileSize = taskConfig.OutputFileSize,
+                        InitialCreatedWorkunits = taskConfig.InitialCreatedWorkunits,
+                        MaxCreatedWorkunits = taskConfig.MaxCreatedWorkunits,
+                        MaxErrorWorkunits = taskConfig.MaxErrorWorkunits,
+                        MaxSuccessWorkunits = taskConfig.MaxSuccessWorkunits,
+                        DelayBound = taskConfig.DelayBound,
+                        MinQuorum = taskConfig.MinQuorum
                     };
                 }
             }
