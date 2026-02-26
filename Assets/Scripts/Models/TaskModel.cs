@@ -32,7 +32,7 @@ public class TaskModel
         // normal gen of a size of a task
 
         float mean = (_config.MinTaskGflops + _config.MaxTaskGflops) / 2f;
-        float stdDev = (_config.MinTaskGflops - _config.MaxTaskGflops) / 6f;
+        float stdDev = (_config.MaxTaskGflops - _config.MinTaskGflops) / 6f;
 
         _taskSizeGflops = Mathf.Clamp(
             RandomUtils.GetDistribution(_config.TaskPowerDistri, mean, stdDev), 
@@ -55,7 +55,7 @@ public class TaskModel
             _taskSizeGflops,
             _config.InputFileSize,
             _config.OutputFileSize,
-            TimeTickSystem.Instance.CurTick + _config.DelayBound
+            0
         );
         Workunits.Add(workunit);
         _workunitsCreated++;

@@ -35,13 +35,16 @@ public class RandomConfig : ScriptableObject
     [field: SerializeField]
     public Distribution HostNonavailabilityDistri {get; private set;} = Distribution.Lognormal;
 
-    [Tooltip("A parameter for non-availability distribution")]
-    [field: SerializeField]
-    public float HostNonavailabilityA {get; private set;} = 2.444f;
+        [Tooltip("A parameter for non-availability distribution")]
+        [field: SerializeField]
 
-    [Tooltip("B parameter for non-availability distribution")]
-    [field: SerializeField]
-    public float HostNonavailabilityB {get; private set;} = -0.586f;
+        public float HostNonavailabilityA { get; private set; } = 2.444f;
+
+        [Tooltip("B parameter for non-availability distribution")]
+
+        [field: SerializeField]
+
+        public float HostNonavailabilityB { get; private set; } = -0.586f;
 
     [Header("CPU Availability")]
     [Tooltip("CPU availability fit distribution")]
@@ -63,7 +66,7 @@ public class RandomConfig : ScriptableObject
 
     [Tooltip("A parameter for Y-non-availability distribution")]
     [field: SerializeField]
-    public float CpuNonavailabilityA {get; private set;} = 2.844f;
+    public float CpuNonavailabilityA {get; private set;} = 2.444f;
 
     [Tooltip("B parameter for Y-non-availability distribution")]
     [field: SerializeField]

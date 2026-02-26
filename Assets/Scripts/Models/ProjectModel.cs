@@ -95,6 +95,14 @@ public class ProjectModel : BaseActor
                 var workToSendSet = new HashSet<WorkunitData>(workToSend);
                 var newQueue = new Queue<WorkunitData>(_readyWorkQueue.Where(w => !workToSendSet.Contains(w)));
                 
+                foreach (var workunit in workToSend)
+                {
+                    if (_taskDatabase.TryGetValue(workunit.ParentTaskName, out var task))
+                    {
+                        workunit.deadlineTick = TimeTickSystem.Instance.CurTick + task.DelayBound;
+                    }
+                }
+
                 _readyWorkQueue.Clear();
                 while (newQueue.Any())
                 {

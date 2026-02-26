@@ -107,6 +107,19 @@ public partial class SimulationManager
 
     private void WriteHostStatsToFile()
     {
+        var wuSent = GlobalStats.WorkunitsSent.Values.Sum();
+        var wuLate = GlobalStats.LateWorkunitResults.Values.Sum();
+        var wuError = GlobalStats.ErrorWorkunitResults.Values.Sum();
+        var wuValid = GlobalStats.ValidWorkunitResults.Values.Sum();
+        var wuReceived = GlobalStats.WorkunitResultsReceived.Values.Sum();
+
+        Debug.Log($"wu sent: {wuSent}");
+        Debug.Log($"wu late: {wuLate}");
+        Debug.Log($"wu error: {wuError}");
+        Debug.Log($"wu valid: {wuValid}");
+        Debug.Log($"wu received: {wuReceived}");
+
+
         string filePath = Path.Combine(_outputDir, HOST_UTILIZATION_FILE);
 
             using (StreamWriter file = new StreamWriter(filePath, true))
@@ -181,7 +194,7 @@ public partial class SimulationManager
                 NumberOfProjects = simConfig.NumberOfProjects,
                 NumberOfGroups = simConfig.NumberOfGroups,
                 DeterministicSeed = simConfig.DeterministicSeed,
-                StatisticsFileName = simConfig.StatisticsFileName
+                StatisticsFileName = simConfig.ExperimentFolderName
             };
 
             if (simConfig.ProjectConfig != null)

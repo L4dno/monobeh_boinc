@@ -34,7 +34,7 @@ public partial class SimulationManager : MonoBehaviour
     private void Start()
     {
         
-        statisticWriter = new StatisticWriter(_config.StatisticsFileName, _config);
+        statisticWriter = new StatisticWriter(_config.ExperimentFolderName, _config);
         StartCoroutine(statisticWriter.WriteTaskCsv());
         StartCoroutine(statisticWriter.WriteHostCsv());
     

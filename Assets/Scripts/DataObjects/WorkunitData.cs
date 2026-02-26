@@ -5,7 +5,7 @@ public class WorkunitData
     public readonly float durationInFlops;
     public readonly float inputByteSize;
     public readonly float outputByteSize;
-    public readonly int deadlineTick;
+    public int deadlineTick;
 
     public WorkunitData(string parentTaskName, int workunitId, 
                         float durationInFlops, float inputByteSize, float outputByteSize, int deadlineTick)
