@@ -47,6 +47,19 @@ public partial class SimulationManager : MonoBehaviour
         }
 
     private int _maxSimulationTime;
+    public int MaxSimulationTime => _maxSimulationTime;
+    public int TotalClientsCount
+    {
+        get
+        {
+            return _config.GroupConfig.NumberOfClients;
+        }
+    }
+
+    public float GetMeanHostSpeedGflops()
+    {
+        return 1.0f / _config.GroupConfig.RandomConfig.PowerA;
+    }
 
     private void Tick(int curTick)
     {

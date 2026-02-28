@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: RandomConfig
   m_EditorClassIdentifier: 
   <HostPowerDistri>k__BackingField: 5
-  <PowerA>k__BackingField: 0.1734
+  <PowerA>k__BackingField: 0.1667
   <PowerB>k__BackingField: -1
   <HostAvailabilityDistri>k__BackingField: 0
   <HostAvailabilityA>k__BackingField: 0.393

@@ -16,7 +16,7 @@ MonoBehaviour:
   <RandomConfig>k__BackingField: {fileID: 11400000, guid: f98141a8d1462bc4cba7165c8b751a5a, type: 2}
   <MaxSpeed>k__BackingField: 117.71
   <MinSpeed>k__BackingField: 0.07
-  <ConnectionInterval>k__BackingField: 1
-  <SchedulingInterval>k__BackingField: 3600
+  <ConnectionInterval>k__BackingField: 150
+  <SchedulingInterval>k__BackingField: 150
   <ServerLatency>k__BackingField: 1
   <ServerBandwidth>k__BackingField: 1.25

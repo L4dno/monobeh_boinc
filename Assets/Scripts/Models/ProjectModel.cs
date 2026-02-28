@@ -120,13 +120,37 @@ public class ProjectModel : BaseActor
     {
         Debug.Assert(_config.TaskConfigs.Any(), $"ProjectConfig '{_config.name}' has no TaskConfigs assigned.");
 
-        while (GlobalStats.TasksCreated[ProjectName] < _config.InitialTaskCount)
+        // TODO: расчитать долю каждого проекта
+
+        int applicationsCount = _config.TaskConfigs.Count;
+
+        float totalSimulatedGflops = SimulationManager.Instance.GetMeanHostSpeedGflops() * 
+        SimulationManager.Instance.MaxSimulationTime;
+
+        float gflopsPerApplication = totalSimulatedGflops / applicationsCount;
+
+        List<int> InitialTasksPerApp = new List<int>();
+        foreach (var taskConfig in _config.TaskConfigs)
         {
-            var taskName = $"Task-{GlobalStats.TasksCreated[ProjectName]}";
-            var selectedTaskConfig = _config.TaskConfigs[Random.Range(0, _config.TaskConfigs.Count)];
-            var task = new TaskModel(taskName, selectedTaskConfig);
-            _taskDatabase.Add(taskName, task);
-            GlobalStats.TasksCreated[ProjectName]++;
+            float mean = (taskConfig.MinTaskGflops + taskConfig.MaxTaskGflops) / 2f;
+            int InitialTaskCount = Mathf.CeilToInt(gflopsPerApplication / mean / taskConfig.InitialCreatedWorkunits);
+            InitialTasksPerApp.Add(InitialTaskCount);
+        }
+
+        // заполнить каждым конфигом массив соответствующего размера
+
+        for (int i = 0; i < applicationsCount; i++)
+        {
+            for (int j = 0; j < InitialTasksPerApp[i]; j++)
+            {
+                var taskName = $"Task-{GlobalStats.TasksCreated[ProjectName]}";
+                // TODO: сделать соотношение между несколькими проектами
+                var selectedTaskConfig = _config.TaskConfigs[i];
+                var task = new TaskModel(taskName, selectedTaskConfig);
+                _taskDatabase.Add(taskName, task);
+                GlobalStats.TasksCreated[ProjectName]++;
+            }
+            
         }
         yield break; 
     }

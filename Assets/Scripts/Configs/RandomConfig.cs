@@ -11,7 +11,7 @@ public class RandomConfig : ScriptableObject
 
     [Tooltip("A parameter for speed distribution")]
     [field: SerializeField]
-    public float PowerA {get; private set;} = 0.1734f;
+    public float PowerA {get; private set;} = 0.1667f;
 
     [Tooltip("B parameter for speed distribution")]
     [field: SerializeField]

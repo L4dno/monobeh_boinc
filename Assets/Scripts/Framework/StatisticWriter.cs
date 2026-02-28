@@ -205,7 +205,6 @@ public partial class SimulationManager
                     Priority = simConfig.ProjectConfig.Priority,
                     ProjectId = simConfig.ProjectConfig.ProjectId,
                     ServerPowerGflops = simConfig.ProjectConfig.ServerPowerGflops,
-                    InitialTaskCount = simConfig.ProjectConfig.InitialTaskCount,
                     SuccessPercentage = simConfig.ProjectConfig.SuccessPercentage,
                     CanonicalPercentage = simConfig.ProjectConfig.CanonicalPercentage
                 };

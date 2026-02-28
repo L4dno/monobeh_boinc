@@ -17,10 +17,10 @@ public class GroupConfig : ScriptableObject
     public float MinSpeed { get; private set; } = 0.07f;
 
     [field: SerializeField]
-    public int ConnectionInterval { get; private set; } = 1;
+    public int ConnectionInterval { get; private set; } = 150;
 
     [field: SerializeField]
-    public int SchedulingInterval { get; private set; } = 3600;
+    public int SchedulingInterval { get; private set; } = 150;
 
     [field: SerializeField]
     public float ServerLatency { get; private set; } = 1.0f;

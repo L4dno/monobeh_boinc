@@ -19,11 +19,6 @@ public class ProjectConfig : ScriptableObject
     [field: SerializeField]
     public float ServerPowerGflops { get; private set; } = 12.0f; 
 
-   
-
-    [field: SerializeField]
-    [Tooltip("tasks that is replicated to wu's")]
-    public int InitialTaskCount { get; private set; } = 2000; 
 
     [field: SerializeField]
     public int SuccessPercentage { get; private set; } = 95;

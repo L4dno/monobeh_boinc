@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 022972ea16dcb444b8a073aaa918a410, type: 3}
-  m_Name: TaskConfig
+  m_Name: TaskConfig2
   m_EditorClassIdentifier: 
   <TaskPowerDistri>k__BackingField: 3
-  <MinTaskGflops>k__BackingField: 4000
-  <MaxTaskGflops>k__BackingField: 6000
+  <MinTaskGflops>k__BackingField: 21600
+  <MaxTaskGflops>k__BackingField: 43200
   <InputFileSize>k__BackingField: 54.6
   <OutputFileSize>k__BackingField: 100
   <InitialCreatedWorkunits>k__BackingField: 2

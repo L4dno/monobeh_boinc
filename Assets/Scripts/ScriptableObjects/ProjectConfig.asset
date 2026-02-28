@@ -18,6 +18,5 @@ MonoBehaviour:
   <TaskConfigs>k__BackingField:
   - {fileID: 11400000, guid: 2e78620378879c24397b5c5f11d30e6b, type: 2}
   <ServerPowerGflops>k__BackingField: 12
-  <InitialTaskCount>k__BackingField: 2000
   <SuccessPercentage>k__BackingField: 95
   <CanonicalPercentage>k__BackingField: 95
