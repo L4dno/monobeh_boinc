@@ -17,6 +17,8 @@ MonoBehaviour:
   <ProjectId>k__BackingField: 0
   <TaskConfigs>k__BackingField:
   - {fileID: 11400000, guid: 2e78620378879c24397b5c5f11d30e6b, type: 2}
+  - {fileID: 11400000, guid: 7ddc720b071da8d49ae23de9a5d7e782, type: 2}
+  - {fileID: 11400000, guid: 875d6b9580d249c4f95331710a671adc, type: 2}
   <ServerPowerGflops>k__BackingField: 12
   <SuccessPercentage>k__BackingField: 95
   <CanonicalPercentage>k__BackingField: 95

@@ -123,11 +123,21 @@ public class ProjectModel : BaseActor
         // TODO: расчитать долю каждого проекта
 
         int applicationsCount = _config.TaskConfigs.Count;
+        Debug.LogWarning($"apps count is {applicationsCount}");
 
-        float totalSimulatedGflops = SimulationManager.Instance.GetMeanHostSpeedGflops() * 
-        SimulationManager.Instance.MaxSimulationTime;
+        int DAY_CYCLE_FACTOR = SimulationManager.Instance.MaxSimulationTime / 
+        3600 / 24;
+
+        //float totalSimulatedGflops = SimulationManager.Instance.GetMeanHostSpeedGflops() * 
+        //SimulationManager.Instance.MaxSimulationTime * 
+        //SimulationManager.Instance.TotalClientsCount / DAY_CYCLE_FACTOR;
+
+        float totalSimulatedGflops = (float)GlobalStats.TotalPower * 
+            SimulationManager.Instance.MaxSimulationTime / DAY_CYCLE_FACTOR;
+        Debug.LogWarning($"total gflops for all {totalSimulatedGflops}");
 
         float gflopsPerApplication = totalSimulatedGflops / applicationsCount;
+        Debug.LogWarning($"flops per app {gflopsPerApplication}");
 
         List<int> InitialTasksPerApp = new List<int>();
         foreach (var taskConfig in _config.TaskConfigs)
@@ -135,10 +145,11 @@ public class ProjectModel : BaseActor
             float mean = (taskConfig.MinTaskGflops + taskConfig.MaxTaskGflops) / 2f;
             int InitialTaskCount = Mathf.CeilToInt(gflopsPerApplication / mean / taskConfig.InitialCreatedWorkunits);
             InitialTasksPerApp.Add(InitialTaskCount);
+            Debug.LogWarning($"number of tasks for new group is {InitialTaskCount}");
         }
 
         // заполнить каждым конфигом массив соответствующего размера
-
+        //InitialTasksPerApp = new List<int>{2000};
         for (int i = 0; i < applicationsCount; i++)
         {
             for (int j = 0; j < InitialTasksPerApp[i]; j++)
