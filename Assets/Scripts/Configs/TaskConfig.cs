@@ -3,38 +3,38 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "TaskConfig", menuName = "Scriptable Objects/TaskConfig")]
 public class TaskConfig : ScriptableObject
 {
-    [field: SerializeField]
-    public Distribution TaskPowerDistri { get; private set; } = Distribution.Normal;
+    
+    public Distribution TaskPowerDistri  = Distribution.Normal;
 
-    [field: SerializeField]
-    public float MinTaskGflops { get; private set; } = 5040.0f;
+    
+    public float MinTaskGflops  = 5040.0f;
 
-    [field: SerializeField]
-    public float MaxTaskGflops { get; private set; } = 7040.0f;
+    
+    public float MaxTaskGflops  = 7040.0f;
 
-    [field: SerializeField]
+    
     [Tooltip("Size in Megabytes (MB)")]
-    public float InputFileSize { get; private set; } = 54.6f;
+    public float InputFileSize  = 54.6f;
 
-    [field: SerializeField]
+    
     [Tooltip("Size in Megabytes (MB)")]
-    public float OutputFileSize { get; private set; } = 100.0f;
+    public float OutputFileSize  = 100.0f;
 
-    [field: SerializeField]
-    public int InitialCreatedWorkunits { get; private set; } = 2;
+    
+    public int InitialCreatedWorkunits  = 2;
 
-     [field: SerializeField]
-    public int DelayBound { get; private set; } = 1000000000; 
+     
+    public int DelayBound  = 1000000000; 
 
-    [field: SerializeField]
-    public int MinQuorum { get; private set; } = 2;
     
-    [field: SerializeField]
-    public int MaxCreatedWorkunits { get; private set; } = 4;
+    public int MinQuorum  = 2;
     
-    [field: SerializeField]
-    public int MaxErrorWorkunits { get; private set; } = 2;
     
-    [field: SerializeField]
-    public int MaxSuccessWorkunits { get; private set; } = 3;
+    public int MaxCreatedWorkunits  = 4;
+    
+    
+    public int MaxErrorWorkunits  = 2;
+    
+    
+    public int MaxSuccessWorkunits  = 3;
 }

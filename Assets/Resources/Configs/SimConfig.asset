@@ -12,8 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ba654fe2e69fea546833108861944ac4, type: 3}
   m_Name: SimConfig
   m_EditorClassIdentifier: 
-  <SimLength>k__BackingField: 240
-  <ProjectConfig>k__BackingField: {fileID: 11400000, guid: 511d7d170163f8a4ead04a683594681d, type: 2}
-  <GroupConfig>k__BackingField: {fileID: 11400000, guid: eb27d3ca1ce3ba34485e946576290686, type: 2}
-  <DeterministicSeed>k__BackingField: 6523446
-  <ExperimentFolderName>k__BackingField: statistics
+  SimLength: 120
+  NumberOfProjects: 1
+  ProjectConfig: {fileID: 11400000, guid: 511d7d170163f8a4ead04a683594681d, type: 2}
+  NumberOfGroups: 1
+  GroupConfig: {fileID: 11400000, guid: eb27d3ca1ce3ba34485e946576290686, type: 2}
+  DeterministicSeed: 6523446
+  ExperimentFolderName: statistics

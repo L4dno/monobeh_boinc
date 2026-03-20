@@ -3,23 +3,23 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "SimConfig", menuName = "Scriptable Objects/SimConfig")]
 public class SimConfig : ScriptableObject
 {
-    [field: SerializeField]
+    
     [Tooltip("in hours")]
-    public int SimLength {get; private set;} = 120;
-    public int NumberOfProjects {get; private set;} = 1;
+    public int SimLength  = 120;
+    public int NumberOfProjects  = 1;
 
-    [field: SerializeField]
-    public ProjectConfig ProjectConfig {get; private set;}
+    
+    public ProjectConfig ProjectConfig;
 
-    public int NumberOfGroups {get; private set;} = 1;
+    public int NumberOfGroups  = 1;
 
-    [field: SerializeField]
-    public GroupConfig GroupConfig {get; private set;}
+    
+    public GroupConfig GroupConfig;
 
-    [field: SerializeField]
+    
     [Tooltip("Seed for deterministic run")]
-    public int DeterministicSeed {get; private set;} = 6523446;
+    public int DeterministicSeed  = 6523446;
 
-    [field: SerializeField]
-    public string ExperimentFolderName { get; private set; } = "statistics";
+    
+    public string ExperimentFolderName  = "statistics";
 }

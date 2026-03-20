@@ -4,25 +4,25 @@ using System.Collections.Generic;
 [CreateAssetMenu(fileName = "ProjectConfig", menuName = "Scriptable Objects/ProjectConfig")]
 public class ProjectConfig : ScriptableObject
 {
-    [field: SerializeField]
-    public string ProjectName { get; private set; } = "ATLAS@home";
+    
+    public string ProjectName  = "ATLAS@home";
 
-    [field: SerializeField]
-    public float Priority { get; private set; } = 1.0f;
+    
+    public float Priority  = 1.0f;
 
-    [field: SerializeField]
-    public int ProjectId { get; private set; } = 0;
+    
+    public int ProjectId  = 0;
 
-    [field: SerializeField]
-    public List<TaskConfig> TaskConfigs { get; private set; }
+    
+    public List<TaskConfig> TaskConfigs;
 
-    [field: SerializeField]
-    public float ServerPowerGflops { get; private set; } = 12.0f; 
+    
+    public float ServerPowerGflops  = 12.0f; 
 
 
-    [field: SerializeField]
-    public int SuccessPercentage { get; private set; } = 95;
+    
+    public int SuccessPercentage  = 95;
 
-    [field: SerializeField]
-    public int CanonicalPercentage { get; private set; } = 95;
+    
+    public int CanonicalPercentage  = 95;
 }

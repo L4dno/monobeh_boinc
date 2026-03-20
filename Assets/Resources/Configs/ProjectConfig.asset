@@ -12,13 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c77cc487d7eb39a4c8f172ae5b52e76e, type: 3}
   m_Name: ProjectConfig
   m_EditorClassIdentifier: 
-  <ProjectName>k__BackingField: ATLAS@home
-  <Priority>k__BackingField: 1
-  <ProjectId>k__BackingField: 0
-  <TaskConfigs>k__BackingField:
+  ProjectName: ATLAS@home
+  Priority: 1
+  ProjectId: 0
+  TaskConfigs:
   - {fileID: 11400000, guid: 2e78620378879c24397b5c5f11d30e6b, type: 2}
   - {fileID: 11400000, guid: 7ddc720b071da8d49ae23de9a5d7e782, type: 2}
   - {fileID: 11400000, guid: 875d6b9580d249c4f95331710a671adc, type: 2}
-  <ServerPowerGflops>k__BackingField: 12
-  <SuccessPercentage>k__BackingField: 95
-  <CanonicalPercentage>k__BackingField: 95
+  ServerPowerGflops: 12
+  SuccessPercentage: 95
+  CanonicalPercentage: 95
