@@ -16,7 +16,7 @@ public partial class SimulationManager : MonoBehaviour
     private List<HostModel> hosts;
     public LinkModel Link {get; private set;} 
 
-    [SerializeField] private SimConfig _config;
+    private SimConfig _config;
     
     public void RegisterActor(BaseActor actor)
     {
@@ -130,15 +130,21 @@ public partial class SimulationManager : MonoBehaviour
             Destroy(gameObject);  
         }
         
+        var configProvider = Container.Instance.ConfigProvider;
+        _config = configProvider.SimConfig;
+
         Actors = new Dictionary<string, BaseActor>();
         hosts = new List<HostModel>();
 
         TimeTickSystem.OnTick += Tick;
 
         RandomUtils.SetSeed(_config.DeterministicSeed);
+        // впоследствии здесь надо будет заменить на относительное время
         _maxSimulationTime = _config.SimLength * 3600;
         CreatePlatform();
         CreateDeployment();
+
+        
 
     }
 
