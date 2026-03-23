@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Globalization;
-using Newtonsoft.Json;
 
 
 public partial class SimulationManager
@@ -13,8 +12,6 @@ public partial class SimulationManager
     {
     private readonly string _outputDir;
     private const int Interval = 3600;
-
-    private SimConfigData _outputParams;
 
     const string WORKUNITS_FILE = "workunits.csv";
     const string PARAMS_FILE = "parameters.json";
@@ -41,9 +38,7 @@ public partial class SimulationManager
 
         Directory.CreateDirectory(sessionDir);
         _outputDir = sessionDir;
-
         Debug.LogWarning($"Statistics dir path: {_outputDir}");
-        _outputParams = CreateConfigData(simConfig);
         InitializeDirectory();
     }
 
@@ -59,7 +54,7 @@ public partial class SimulationManager
             file.WriteLine("timestamp,project_name,tasks_total,tasks_inprogress,tasks_completed,tasks_valid,tasks_error");
         }
         
-        string paramsJson = JsonConvert.SerializeObject(_outputParams);
+        string paramsJson = Container.Instance.ConfigProvider.GetConfigsJson();
         using (StreamWriter file = new StreamWriter(paramsPath, false))
         {
             file.WriteLine(paramsJson);
@@ -185,87 +180,5 @@ public partial class SimulationManager
             }
         }
 
-        public SimConfigData CreateConfigData(SimConfig simConfig)
-        {
-
-            var simConfigData = new SimConfigData
-            {
-                SimLength = simConfig.SimLength,
-                NumberOfProjects = simConfig.NumberOfProjects,
-                NumberOfGroups = simConfig.NumberOfGroups,
-                DeterministicSeed = simConfig.DeterministicSeed,
-                StatisticsFileName = simConfig.ExperimentFolderName
-            };
-
-            if (simConfig.ProjectConfig != null)
-            {
-                simConfigData.ProjectConfig = new ProjectConfigData
-                {
-                    ProjectName = simConfig.ProjectConfig.ProjectName,
-                    Priority = simConfig.ProjectConfig.Priority,
-                    ProjectId = simConfig.ProjectConfig.ProjectId,
-                    ServerPowerGflops = simConfig.ProjectConfig.ServerPowerGflops,
-                    SuccessPercentage = simConfig.ProjectConfig.SuccessPercentage,
-                    CanonicalPercentage = simConfig.ProjectConfig.CanonicalPercentage
-                };
-
-                if (simConfig.ProjectConfig.TaskConfigs != null && simConfig.ProjectConfig.TaskConfigs.Any())
-                {
-                    var taskConfig = simConfig.ProjectConfig.TaskConfigs[0];
-                    simConfigData.ProjectConfig.TaskConfig = new TaskConfigData
-                    {
-                        TaskPowerDistri = taskConfig.TaskPowerDistri,
-                        MinTaskGflops = taskConfig.MinTaskGflops,
-                        MaxTaskGflops = taskConfig.MaxTaskGflops,
-                        InputFileSize = taskConfig.InputFileSize,
-                        OutputFileSize = taskConfig.OutputFileSize,
-                        InitialCreatedWorkunits = taskConfig.InitialCreatedWorkunits,
-                        MaxCreatedWorkunits = taskConfig.MaxCreatedWorkunits,
-                        MaxErrorWorkunits = taskConfig.MaxErrorWorkunits,
-                        MaxSuccessWorkunits = taskConfig.MaxSuccessWorkunits,
-                        DelayBound = taskConfig.DelayBound,
-                        MinQuorum = taskConfig.MinQuorum
-                    };
-                }
-            }
-
-            if (simConfig.GroupConfig != null)
-            {
-                simConfigData.GroupConfig = new GroupConfigData
-                {
-                    NumberOfClients = simConfig.GroupConfig.NumberOfClients,
-                    MaxSpeed = simConfig.GroupConfig.MaxSpeed,
-                    MinSpeed = simConfig.GroupConfig.MinSpeed,
-                    ConnectionInterval = simConfig.GroupConfig.ConnectionInterval,
-                    SchedulingInterval = simConfig.GroupConfig.SchedulingInterval,
-                    ServerLatency = simConfig.GroupConfig.ServerLatency,
-                    ServerBandwidth = simConfig.GroupConfig.ServerBandwidth
-                };
-
-                if (simConfig.GroupConfig.RandomConfig != null)
-                {
-                    simConfigData.GroupConfig.RandomConfig = new RandomConfigData
-                    {
-                        HostPowerDistri = simConfig.GroupConfig.RandomConfig.HostPowerDistri,
-                        PowerA = simConfig.GroupConfig.RandomConfig.PowerA,
-                        PowerB = simConfig.GroupConfig.RandomConfig.PowerB,
-                        HostAvailabilityDistri = simConfig.GroupConfig.RandomConfig.HostAvailabilityDistri,
-                        HostAvailabilityA = simConfig.GroupConfig.RandomConfig.HostAvailabilityA,
-                        HostAvailabilityB = simConfig.GroupConfig.RandomConfig.HostAvailabilityB,
-                        HostNonavailabilityDistri = simConfig.GroupConfig.RandomConfig.HostNonavailabilityDistri,
-                        HostNonavailabilityA = simConfig.GroupConfig.RandomConfig.HostNonavailabilityA,
-                        HostNonavailabilityB = simConfig.GroupConfig.RandomConfig.HostNonavailabilityB,
-                        CpuAvailabilityDistri = simConfig.GroupConfig.RandomConfig.CpuAvailabilityDistri,
-                        CpuAvailabilityA = simConfig.GroupConfig.RandomConfig.CpuAvailabilityA,
-                        CpuAvailabilityB = simConfig.GroupConfig.RandomConfig.CpuAvailabilityB,
-                        CpuNonavailabilityDistri = simConfig.GroupConfig.RandomConfig.CpuNonavailabilityDistri,
-                        CpuNonavailabilityA = simConfig.GroupConfig.RandomConfig.CpuNonavailabilityA,
-                        CpuNonavailabilityB = simConfig.GroupConfig.RandomConfig.CpuNonavailabilityB
-                    };
-                }
-            }
-
-            return simConfigData;
         }
-    }
 }
