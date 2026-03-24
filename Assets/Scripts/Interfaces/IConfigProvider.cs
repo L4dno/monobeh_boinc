@@ -1,4 +1,4 @@
 public interface IConfigProvider {
-    public SimConfig SimConfig {get;}
-    public string GetConfigsJson();
+    SimConfig SimConfig {get;}
+    string GetConfigsJson();
 }
