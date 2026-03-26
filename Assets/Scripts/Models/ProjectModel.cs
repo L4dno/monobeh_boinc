@@ -1,4 +1,5 @@
 using UnityEngine;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,10 +17,11 @@ public class ProjectModel : BaseActor
     private readonly Queue<WorkunitData> _errorWorkQueue = new Queue<WorkunitData>();
     private readonly Queue<TaskModel> _assimilationQueue = new Queue<TaskModel>();
 
+    public int TasksCreated = 0;
+
     public ProjectModel(ProjectConfig config, int actorId, HostModel host) : base($"project{actorId}", host)
     {
         _config = config;
-        GlobalStats.InitProject(ProjectName);
     }
 
     public override IEnumerator MainLoop()
@@ -38,16 +40,12 @@ public class ProjectModel : BaseActor
             var message = Receive();
             if (message != null)
             {
-                GlobalStats.MessagesReceived[ProjectName]++;
                 if (message is ClientRequestData request)
                 {
-                    GlobalStats.WorkRequests[ProjectName]++;
                     yield return ProcessWorkRequest(request);
                 }
                 else if (message is ClientReplyData reply)
                 {
-                    GlobalStats.WorkunitResultsReceived[ProjectName]++;
-                    GlobalStats.DsUploads[ProjectName]++;
                     _validationQueue.Enqueue(reply);
                 }
             }
@@ -91,7 +89,6 @@ public class ProjectModel : BaseActor
             
             if (workToSend.Any())
             {
-                GlobalStats.WorkunitsSent[ProjectName] += workToSend.Count;
                 var workToSendSet = new HashSet<WorkunitData>(workToSend);
                 var newQueue = new Queue<WorkunitData>(_readyWorkQueue.Where(w => !workToSendSet.Contains(w)));
                 
@@ -132,7 +129,7 @@ public class ProjectModel : BaseActor
         //SimulationManager.Instance.MaxSimulationTime * 
         //SimulationManager.Instance.TotalClientsCount / DAY_CYCLE_FACTOR;
 
-        float totalSimulatedGflops = (float)GlobalStats.TotalPower * 
+        float totalSimulatedGflops = SimulationManager.Instance.GridTotalPower * 
             SimulationManager.Instance.MaxSimulationTime / DAY_CYCLE_FACTOR;
         Debug.LogWarning($"total gflops for all {totalSimulatedGflops}");
 
@@ -154,12 +151,13 @@ public class ProjectModel : BaseActor
         {
             for (int j = 0; j < InitialTasksPerApp[i]; j++)
             {
-                var taskName = $"Task-{GlobalStats.TasksCreated[ProjectName]}";
+                var taskName = $"Task-{TasksCreated}";
                 // TODO: сделать соотношение между несколькими проектами
                 var selectedTaskConfig = _config.TaskConfigs[i];
                 var task = new TaskModel(taskName, selectedTaskConfig);
                 _taskDatabase.Add(taskName, task);
-                GlobalStats.TasksCreated[ProjectName]++;
+                TasksCreated++;
+                OnWorkunitCreated?.Invoke();
             }
             
         }
@@ -178,7 +176,6 @@ public class ProjectModel : BaseActor
             while (task.CanCreateInitialWork())
             {
                 _readyWorkQueue.Enqueue(task.CreateWorkunit());
-                GlobalStats.WorkunitsCreated[ProjectName]++;
             }
         }
 
@@ -193,7 +190,6 @@ public class ProjectModel : BaseActor
                     if (task.CanCreateMoreWork()) // Check against absolute max
                     {
                         _readyWorkQueue.Enqueue(task.CreateWorkunit());
-                        GlobalStats.WorkunitsCreated[ProjectName]++;
                     }
                 }
                 // Yield to process one per frame to avoid freezing if the error queue is large
@@ -214,7 +210,6 @@ public class ProjectModel : BaseActor
             if (_validationQueue.Count > 0)
             {
                 var reply = _validationQueue.Dequeue();
-                GlobalStats.WorkunitResultsAnalyzed[ProjectName]++;
 
                 if (_taskDatabase.TryGetValue(reply.WorkunitName, out var task))
                 {
@@ -227,24 +222,19 @@ public class ProjectModel : BaseActor
                     
                     if (isTimeout)
                     {
-                        GlobalStats.LateWorkunitResults[ProjectName]++;
                     }
 
                     if (reply.status == WorkunitStatus.Success && !isTimeout)
                     {
                         task.SuccessResults++;
-                        GlobalStats.SuccessfulWorkunitResults[ProjectName]++;
                         if (reply.result == WorkunitResult.Correct)
                         {
                             task.ValidResults++;
-                            GlobalStats.ValidWorkunitResults[ProjectName]++;
-                            GlobalStats.TotalCredit[ProjectName] += reply.credits;
                         }
                     }
                     else
                     {
                         task.ErrorResults++;
-                        GlobalStats.ErrorWorkunitResults[ProjectName]++;
                     }
 
                     if (task.CurrentState == TaskModel.State.InProgress)
@@ -275,27 +265,11 @@ public class ProjectModel : BaseActor
                     }
                     else if (task.CurrentState == TaskModel.State.Valid && reply.status == WorkunitStatus.Success && reply.result == WorkunitResult.Correct)
                     {
-                        GlobalStats.ValidWorkunitResults[ProjectName]++;
-                        GlobalStats.TotalCredit[ProjectName] += reply.credits;
                     }
                 }
                 else
                 {
                     // This is a late reply for an already assimilated task.
-                    GlobalStats.LateWorkunitResults[ProjectName]++;
-                    if (reply.status == WorkunitStatus.Success)
-                    {
-                        GlobalStats.SuccessfulWorkunitResults[ProjectName]++;
-                        if (reply.result == WorkunitResult.Correct)
-                        {
-                            GlobalStats.ValidWorkunitResults[ProjectName]++;
-                            GlobalStats.TotalCredit[ProjectName] += reply.credits;
-                        }
-                    }
-                    else
-                    {
-                        GlobalStats.ErrorWorkunitResults[ProjectName]++;
-                    }
                 }
             }
             else
@@ -316,13 +290,12 @@ public class ProjectModel : BaseActor
               
                 if (taskToAssimilate.CurrentState == TaskModel.State.Valid)
                 {
-                    GlobalStats.TasksValid[ProjectName]++;
                 }
                 else
                 {
-                    GlobalStats.TasksError[ProjectName]++;
                 }
                 _taskDatabase.Remove(taskToAssimilate.Name);
+                OnWorkunitCompleted?.Invoke();
             }
             
             yield return new WaitForTicks(100); 

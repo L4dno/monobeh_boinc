@@ -102,17 +102,17 @@ public partial class SimulationManager
 
     private void WriteHostStatsToFile()
     {
-        var wuSent = GlobalStats.WorkunitsSent.Values.Sum();
-        var wuLate = GlobalStats.LateWorkunitResults.Values.Sum();
-        var wuError = GlobalStats.ErrorWorkunitResults.Values.Sum();
-        var wuValid = GlobalStats.ValidWorkunitResults.Values.Sum();
-        var wuReceived = GlobalStats.WorkunitResultsReceived.Values.Sum();
+        // var wuSent = GlobalStats.WorkunitsSent.Values.Sum();
+        // var wuLate = GlobalStats.LateWorkunitResults.Values.Sum();
+        // var wuError = GlobalStats.ErrorWorkunitResults.Values.Sum();
+        // var wuValid = GlobalStats.ValidWorkunitResults.Values.Sum();
+        // var wuReceived = GlobalStats.WorkunitResultsReceived.Values.Sum();
 
-        Debug.Log($"wu sent: {wuSent}");
-        Debug.Log($"wu late: {wuLate}");
-        Debug.Log($"wu error: {wuError}");
-        Debug.Log($"wu valid: {wuValid}");
-        Debug.Log($"wu received: {wuReceived}");
+        // Debug.Log($"wu sent: {wuSent}");
+        // Debug.Log($"wu late: {wuLate}");
+        // Debug.Log($"wu error: {wuError}");
+        // Debug.Log($"wu valid: {wuValid}");
+        // Debug.Log($"wu received: {wuReceived}");
 
 
         string filePath = Path.Combine(_outputDir, HOST_UTILIZATION_FILE);
@@ -126,17 +126,17 @@ public partial class SimulationManager
 
                 for (int i = 0; i < numberOfHosts; i++)
                 {
-                    int busy = GlobalStats.TotalBusyTimeByHost.ContainsKey(i) ? GlobalStats.TotalBusyTimeByHost[i] : 0;
-                    int idle = GlobalStats.TotalIdleTimeByHost.ContainsKey(i) ? GlobalStats.TotalIdleTimeByHost[i] : 0;
-                    int suspended = GlobalStats.TotalSuspendedTimeByHost.ContainsKey(i) ? GlobalStats.TotalSuspendedTimeByHost[i] : 0;
+                    //int busy = GlobalStats.TotalBusyTimeByHost.ContainsKey(i) ? GlobalStats.TotalBusyTimeByHost[i] : 0;
+                    //int idle = GlobalStats.TotalIdleTimeByHost.ContainsKey(i) ? GlobalStats.TotalIdleTimeByHost[i] : 0;
+                    //int suspended = GlobalStats.TotalSuspendedTimeByHost.ContainsKey(i) ? GlobalStats.TotalSuspendedTimeByHost[i] : 0;
 
-                    int totalTime = busy + idle;
+                    //int totalTime = busy + idle;
 
                     float utilization = 0;
-                    if (totalTime > 0)
-                    {
-                        utilization = ((float)busy / totalTime);
-                    }
+                    // if (totalTime > 0)
+                    // {
+                    //     utilization = ((float)busy / totalTime);
+                    // }
 
                     hostUtilizations.Add(utilization.ToString("F2", CultureInfo.InvariantCulture));
                 }
@@ -164,8 +164,11 @@ public partial class SimulationManager
                         
                         int inProgress = project.TaskDatabase.Values.Count(t => t.CurrentState == TaskModel.State.InProgress);
                         
-                        int valid = GlobalStats.TasksValid.ContainsKey(project.ProjectName) ? GlobalStats.TasksValid[project.ProjectName] : 0;
-                        int error = GlobalStats.TasksError.ContainsKey(project.ProjectName) ? GlobalStats.TasksError[project.ProjectName] : 0;
+                        int valid = 0;
+                        int error = 0;
+
+                        //int valid = GlobalStats.TasksValid.ContainsKey(project.ProjectName) ? GlobalStats.TasksValid[project.ProjectName] : 0;
+                        //int error = GlobalStats.TasksError.ContainsKey(project.ProjectName) ? GlobalStats.TasksError[project.ProjectName] : 0;
 
                         int completed = valid + error;
                         int totalTasks = inProgress + completed;

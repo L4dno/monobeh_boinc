@@ -43,12 +43,6 @@ public class ClientModel : BaseActor
 
         _currentState = HostState.Suspended;
         _lastStateChangeTick = (int)TimeTickSystem.Instance.CurTick;
-        if (!GlobalStats.TotalSuspendedTimeByHost.ContainsKey(Host.HostId))
-        {
-            GlobalStats.TotalSuspendedTimeByHost[Host.HostId] = 0;
-            GlobalStats.TotalIdleTimeByHost[Host.HostId] = 0;
-            GlobalStats.TotalBusyTimeByHost[Host.HostId] = 0;
-        }
     }
 
     private void SetState(HostState newState)
@@ -69,13 +63,10 @@ public class ClientModel : BaseActor
         switch (_currentState)
         {
             case HostState.Idle:
-                GlobalStats.TotalIdleTimeByHost[Host.HostId] += duration;
                 break;
             case HostState.Busy:
-                GlobalStats.TotalBusyTimeByHost[Host.HostId] += duration;
                 break;
             case HostState.Suspended:
-                GlobalStats.TotalSuspendedTimeByHost[Host.HostId] += duration;
                 break;
         }
 
@@ -110,7 +101,6 @@ public class ClientModel : BaseActor
                                        _config.RandomConfig.HostAvailabilityA,
                                        _config.RandomConfig.HostAvailabilityB
                                    ) * 3600);
-            GlobalStats.TotalAvailableTime += onlineDuration;
             yield return new WaitForTicks(onlineDuration);
 
             // GOING OFFLINE
@@ -141,7 +131,6 @@ public class ClientModel : BaseActor
                                         _config.RandomConfig.HostNonavailabilityB
                                     ) * 3600);
 
-            GlobalStats.TotalNotAvailableTime += offlineDuration;
             yield return new WaitForTicks(offlineDuration);
         }
     }
@@ -233,12 +222,6 @@ public class ClientModel : BaseActor
                 SetState(HostState.Idle);
                 project.InProgressTasks.Remove(workunit);
 
-                if (!GlobalStats.TotalTasksExecuted.ContainsKey(project.Name))
-                {
-                    GlobalStats.TotalTasksExecuted[project.Name] = 0;
-                }
-                GlobalStats.TotalTasksExecuted[project.Name]++;
-
                 var wallTime = TimeTickSystem.Instance.CurTick - _lastWallTick;
                 project.WallCpuTime += wallTime;
                 _lastWallTick = TimeTickSystem.Instance.CurTick;
@@ -277,11 +260,6 @@ public class ClientModel : BaseActor
         while (proj.CompletedTasks.Count > 0)
         {
             var reply = proj.CompletedTasks.Dequeue();
-            if (!GlobalStats.TotalTasksChecked.ContainsKey(proj.Name))
-            {
-                GlobalStats.TotalTasksChecked[proj.Name] = 0;
-            }
-            GlobalStats.TotalTasksChecked[proj.Name]++;
             yield return Push(proj.ProjectActorName, reply);
         }
 
@@ -305,12 +283,6 @@ public class ClientModel : BaseActor
         {
             if (serverReply.workunits.Any())
             {
-                if (!GlobalStats.TotalTasksReceived.ContainsKey(proj.Name))
-                {
-                    GlobalStats.TotalTasksReceived[proj.Name] = 0;
-                }
-                GlobalStats.TotalTasksReceived[proj.Name] += serverReply.workunits.Count;
-
                 _currentConnectionInterval /= 2;
                 if (_currentConnectionInterval < _baseConnectionInterval)
                 {
@@ -452,11 +424,6 @@ public class ClientModel : BaseActor
             var remainingTime = taskToRun.Item1.durationInFlops / Host.HostPower;
             if (TimeTickSystem.Instance.CurTick + remainingTime > taskToRun.Item1.deadlineTick)
             {
-                if (!GlobalStats.TotalTasksMissed.ContainsKey(taskToRun.Item2.Name))
-                {
-                    GlobalStats.TotalTasksMissed[taskToRun.Item2.Name] = 0;
-                }
-                GlobalStats.TotalTasksMissed[taskToRun.Item2.Name]++;
                 // Task will be missed, discard it.
                 return null; 
             }

@@ -15,7 +15,9 @@ public partial class SimulationManager : MonoBehaviour
     public Dictionary<string, BaseActor> Actors { get; private set; }
     private List<HostModel> hosts;
     public LinkModel Link {get; private set;} 
-
+    
+    // осуществляет перенаправление статистики от групп к проекту 
+    public float GridTotalPower {get; private set;}
     private SimConfig _config;
     
     public void RegisterActor(BaseActor actor)
@@ -103,7 +105,7 @@ public partial class SimulationManager : MonoBehaviour
             hosts.Add(new HostModel(_config.ProjectConfig.ServerPowerGflops, hostId));
         }
         
-        GlobalStats.TotalPower = 0;
+        GridTotalPower = 0;
         for (int i = 0; i < _config.GroupConfig.NumberOfClients; i++, hostId++)
         {
             float power = RandomUtils.GetDistribution(
@@ -111,7 +113,7 @@ public partial class SimulationManager : MonoBehaviour
                  _config.GroupConfig.RandomConfig.PowerA, 
                  _config.GroupConfig.RandomConfig.PowerB);
             power = Mathf.Clamp(power, _config.GroupConfig.MinSpeed, _config.GroupConfig.MaxSpeed);
-            GlobalStats.TotalPower += (long)power;
+            GridTotalPower += power;
             hosts.Add(new HostModel(power, hostId));
         }
     }
