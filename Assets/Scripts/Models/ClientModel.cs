@@ -2,6 +2,7 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System;
 
 public enum HostState
 {
@@ -10,8 +11,13 @@ public enum HostState
     Suspended
 }
 
-public class ClientModel : BaseActor
+public class ClientModel : BaseActor, IClientStats
 {
+    public event Action<string, float> OnGoingOffline;
+    public event Action<string, float> OnGoingOnline;
+    public event Action<string, float> OnBusyMode;
+    public event Action<string, float> OnIdleMode;
+
     private readonly GroupConfig _config;
     private readonly Dictionary<string, ClientProject> _projects = new Dictionary<string, ClientProject>();
     private double _sumPriority = 0;
@@ -33,6 +39,8 @@ public class ClientModel : BaseActor
         _config = config;
         _baseConnectionInterval = _config.ConnectionInterval;
         _currentConnectionInterval = _baseConnectionInterval;
+
+        Container.Instance.StatService.RegisterClient(this);
 
         foreach (var projConfig in projectConfigs)
         {
@@ -92,6 +100,8 @@ public class ClientModel : BaseActor
             // GOING ONLINE
             _isOnline = true;
             SetState(HostState.Idle);
+            OnGoingOnline?.Invoke(this.ActorName, Host.HostPower);
+            OnIdleMode?.Invoke(this.ActorName, Host.HostPower);
             if (_executorCoroutine == null)
             {
                 _executorCoroutine = SimulationManager.Instance.StartCoroutine(ExecutorLoop());
@@ -106,6 +116,7 @@ public class ClientModel : BaseActor
             // GOING OFFLINE
             _isOnline = false;
             SetState(HostState.Suspended);
+            OnGoingOffline?.Invoke(this.ActorName, Host.HostPower);
             if (_executorCoroutine != null)
             {
                 SimulationManager.Instance.StopCoroutine(_executorCoroutine);
@@ -218,8 +229,10 @@ public class ClientModel : BaseActor
                 
                 project.InProgressTasks.Add(workunit);
                 SetState(HostState.Busy);
+                OnBusyMode?.Invoke(this.ActorName, Host.HostPower);
                 yield return new Activity(workunit.durationInFlops, this.Host);
                 SetState(HostState.Idle);
+                OnIdleMode?.Invoke(this.ActorName, Host.HostPower);
                 project.InProgressTasks.Remove(workunit);
 
                 var wallTime = TimeTickSystem.Instance.CurTick - _lastWallTick;
@@ -228,10 +241,10 @@ public class ClientModel : BaseActor
 
                 var status = WorkunitStatus.Fail;
                 var result = WorkunitResult.Incorrect;
-                if (Random.Range(0, 100) < project.Config.SuccessPercentage)
+                if (UnityEngine.Random.Range(0, 100) < project.Config.SuccessPercentage)
                 {
                     status = WorkunitStatus.Success;
-                    if (Random.Range(0, 100) < project.Config.CanonicalPercentage)
+                    if (UnityEngine.Random.Range(0, 100) < project.Config.CanonicalPercentage)
                     {
                         result = WorkunitResult.Correct;
                     }

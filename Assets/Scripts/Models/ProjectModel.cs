@@ -4,8 +4,12 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-public class ProjectModel : BaseActor
+public class ProjectModel : BaseActor, IProjectStats
 {
+
+    public event Action OnWorkunitCreated;
+
+    public event Action OnWorkunitCompleted;
     public string ProjectName => _config.ProjectName;
     public IReadOnlyDictionary<string, TaskModel> TaskDatabase => _taskDatabase;
 
@@ -22,6 +26,7 @@ public class ProjectModel : BaseActor
     public ProjectModel(ProjectConfig config, int actorId, HostModel host) : base($"project{actorId}", host)
     {
         _config = config;
+        Container.Instance.StatService.RegisterProject(this);
     }
 
     public override IEnumerator MainLoop()
