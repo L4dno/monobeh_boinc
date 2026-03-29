@@ -12,6 +12,7 @@ public partial class SimulationManager
     {
     private readonly string _outputDir;
     private const int Interval = 3600;
+    private readonly IStatService _statService;
 
     const string WORKUNITS_FILE = "workunits.csv";
     const string PARAMS_FILE = "parameters.json";
@@ -19,15 +20,16 @@ public partial class SimulationManager
     const string HOST_UTILIZATION_FILE = "host_utilization.csv";
 
 
-    public StatisticWriter(string experimentName, SimConfig simConfig)
+public StatisticWriter(SimConfig simConfig, IStatService statService)
     {
+        _statService = statService;
         string outputRoot = Application.persistentDataPath;
 
         int runNumber = 1;
         string sessionDir;
         while (true)
         {
-            string folderName = $"{experimentName}_{runNumber}";
+            string folderName = $"{simConfig.ExperimentFolderName}_{runNumber}";
             sessionDir = Path.Combine(outputRoot, folderName);
             if (!Directory.Exists(sessionDir))
             {
@@ -51,7 +53,7 @@ public partial class SimulationManager
      
         using (StreamWriter file = new StreamWriter(workunitsPath, false))
         {
-            file.WriteLine("timestamp,project_name,tasks_total,tasks_inprogress,tasks_completed,tasks_valid,tasks_error");
+            file.WriteLine("timestamp,tasks_inprogress");
         }
         
         string paramsJson = Container.Instance.ConfigProvider.GetConfigsJson();
@@ -155,26 +157,7 @@ public partial class SimulationManager
                 using (StreamWriter file = new StreamWriter(filePath, true))
                 {
                     double timestamp = TimeTickSystem.Instance.CurTick;
-
-                    
-                    var projects = SimulationManager.Instance.Actors.Values.OfType<ProjectModel>();
-
-                    foreach (var project in projects)
-                    {
-                        
-                        int inProgress = project.TaskDatabase.Values.Count(t => t.CurrentState == TaskModel.State.InProgress);
-                        
-                        int valid = 0;
-                        int error = 0;
-
-                        //int valid = GlobalStats.TasksValid.ContainsKey(project.ProjectName) ? GlobalStats.TasksValid[project.ProjectName] : 0;
-                        //int error = GlobalStats.TasksError.ContainsKey(project.ProjectName) ? GlobalStats.TasksError[project.ProjectName] : 0;
-
-                        int completed = valid + error;
-                        int totalTasks = inProgress + completed;
-
-                        file.WriteLine($"{timestamp},{project.ProjectName},{totalTasks},{inProgress},{completed},{valid},{error}");
-                    }
+                    file.WriteLine($"{timestamp},{_statService.GetStats().UnfinishedWorkunits}");
                 }
             }
             catch (System.Exception ex)

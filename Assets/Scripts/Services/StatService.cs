@@ -1,10 +1,17 @@
 public class StatService : IStatService
 {
-    public float ActivePower {get; private set;}
-    public float IdlePower {get; private set;}
+    private readonly StatsData data = new StatsData();
 
-    public int UnfinishedWorkunits {get; private set;}
-
+    public StatsData GetStats()
+    {
+        // Возвращаем копию, чтобы вызывающий код не мог изменить состояние сервиса
+        return new StatsData
+        {
+            ActivePower = data.ActivePower,
+            IdlePower = data.IdlePower,
+            UnfinishedWorkunits = data.UnfinishedWorkunits
+        };
+    }
 
     public void RegisterClient(IClientStats client)
     {
@@ -21,31 +28,31 @@ public class StatService : IStatService
 
     private void OnGoingOffline(string hostName, float power)
     {
-        ActivePower -= power;
+        data.ActivePower -= power;
     }
 
     private void OnGoingOnline(string hostName, float power)
     {
-        ActivePower += power;
+        data.ActivePower += power;
     }
 
     private void OnIdleMode(string hostName, float power)
     {
-        IdlePower += power;
+        data.IdlePower += power;
     }
 
     private void OnBusyMode(string hostName, float power)
     {
-        IdlePower -= power;
+        data.IdlePower -= power;
     }
 
     private void OnWorkunitCompleted()
     {
-        UnfinishedWorkunits -= 1;
+        data.UnfinishedWorkunits -= 1;
     }
 
     private void OnWorkunitCreated()
     {
-        UnfinishedWorkunits += 1;
+        data.UnfinishedWorkunits += 1;
     }
 }

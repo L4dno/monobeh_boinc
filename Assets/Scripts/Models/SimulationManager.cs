@@ -49,7 +49,7 @@ public partial class SimulationManager : MonoBehaviour
         CreatePlatform();
         CreateDeployment();
 
-        statisticWriter = new StatisticWriter(_config.ExperimentFolderName, _config);
+        statisticWriter = new StatisticWriter(_config, Container.Instance.StatService);
         StartCoroutine(statisticWriter.WriteTaskCsv());
         StartCoroutine(statisticWriter.WriteHostCsv());
     
