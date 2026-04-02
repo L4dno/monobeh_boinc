@@ -17,6 +17,8 @@ public partial class SimulationManager
     const string WORKUNITS_FILE = "workunits.csv";
     const string PARAMS_FILE = "parameters.json";
 
+    const string GRID_FILE = "grid.csv";
+
     const string HOST_UTILIZATION_FILE = "host_utilization.csv";
 
 
@@ -49,8 +51,13 @@ public StatisticWriter(SimConfig simConfig, IStatService statService)
         string workunitsPath = Path.Combine(_outputDir, WORKUNITS_FILE);
         string paramsPath = Path.Combine(_outputDir, PARAMS_FILE);
         string hostPath = Path.Combine(_outputDir, HOST_UTILIZATION_FILE);
+        string gridPath = Path.Combine(_outputDir, GRID_FILE);
 
-     
+        using (StreamWriter file = new StreamWriter(gridPath, false))
+            {
+                file.WriteLine("timestamp,grid_utilization");
+            }
+
         using (StreamWriter file = new StreamWriter(workunitsPath, false))
         {
             file.WriteLine("timestamp,tasks_inprogress");
@@ -74,6 +81,37 @@ public StatisticWriter(SimConfig simConfig, IStatService statService)
 
     }
 
+    public IEnumerator WriteGridPowerCsv()
+        {
+            
+            WriteGridPowerToFile();
+        while (true)
+        {
+            yield return new WaitForTicks(Interval);
+            WriteGridPowerToFile();
+        }
+        }
+
+    private void WriteGridPowerToFile()
+        {
+            string filePath = Path.Combine(_outputDir, GRID_FILE);
+
+        try {
+            using (StreamWriter file = new StreamWriter(filePath, true))
+                {
+                    var stats = _statService.GetStats();
+                    float gridUtil = stats.OnlinePower > 0 ? (stats.OnlinePower - stats.IdlePower) / stats.OnlinePower : 0;
+                    Debug.LogWarning($"current online power is {stats.OnlinePower}, idle power is {stats.IdlePower}");
+                    int timestamp = TimeTickSystem.Instance.CurTick;
+                    file.WriteLine($"{timestamp},{gridUtil}");
+                }
+        }
+        catch (System.Exception ex)
+            {
+                Debug.LogError($"Error writing statistics: {ex.Message}");
+            }
+        }
+
     public IEnumerator WriteTaskCsv()
     {
         
@@ -95,12 +133,13 @@ public StatisticWriter(SimConfig simConfig, IStatService statService)
                     yield return new WaitForTicks(Interval * 2);
                     WriteHostStatsToFile();
                 }
-            }
+}
     public void WriteStats()
     {
         WriteWorkStatsToFile();
         WriteHostStatsToFile();
-    }
+        WriteGridPowerToFile();
+            }
 
     private void WriteHostStatsToFile()
     {
@@ -157,7 +196,7 @@ public StatisticWriter(SimConfig simConfig, IStatService statService)
                 using (StreamWriter file = new StreamWriter(filePath, true))
                 {
                     double timestamp = TimeTickSystem.Instance.CurTick;
-                    file.WriteLine($"{timestamp},{_statService.GetStats().UnfinishedWorkunits}");
+                    file.WriteLine($"{timestamp},{_statService.GetStats().UnfinishedTasks}");
                 }
             }
             catch (System.Exception ex)

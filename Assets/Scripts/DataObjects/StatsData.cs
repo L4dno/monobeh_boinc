@@ -1,7 +1,7 @@
 
 public class StatsData
 {
-    public float ActivePower;
+    public float OnlinePower;
     public float IdlePower;
-    public int UnfinishedWorkunits;
+    public int UnfinishedTasks;
 }

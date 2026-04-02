@@ -52,6 +52,7 @@ public partial class SimulationManager : MonoBehaviour
         statisticWriter = new StatisticWriter(_config, Container.Instance.StatService);
         StartCoroutine(statisticWriter.WriteTaskCsv());
         StartCoroutine(statisticWriter.WriteHostCsv());
+        StartCoroutine(statisticWriter.WriteGridPowerCsv());
     
         // start all actors main loop coroutine
         foreach (var actor in Actors.Values)
@@ -80,7 +81,7 @@ public partial class SimulationManager : MonoBehaviour
     {
         if (curTick % 3600 == 0)
         {
-            Debug.Log($"tick: {curTick/3600}");
+            //Debug.Log($"tick: {curTick/3600}");
         }
         if (curTick == _maxSimulationTime)
             {

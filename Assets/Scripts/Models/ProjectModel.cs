@@ -45,12 +45,14 @@ public class ProjectModel : BaseActor, IProjectStats
             var message = Receive();
             if (message != null)
             {
+                Debug.Log($"[{ActorName}] Received message: {message.GetType().Name}");
                 if (message is ClientRequestData request)
                 {
                     yield return ProcessWorkRequest(request);
                 }
                 else if (message is ClientReplyData reply)
                 {
+                    Debug.Log($"[{ActorName}] Received reply for {reply.WorkunitName} from {reply.ClientName}, enqueuing for validation.");
                     _validationQueue.Enqueue(reply);
                 }
             }
@@ -115,6 +117,7 @@ public class ProjectModel : BaseActor, IProjectStats
 
         
         var reply = new ServerReplyData(workToSend);
+        Debug.Log($"[{ActorName}] Sending {workToSend.Count} workunits to {request.RequesterName}. Ready queue size: {_readyWorkQueue.Count}");
         yield return Push(request.RequesterName, reply);
     }
 
@@ -127,12 +130,7 @@ public class ProjectModel : BaseActor, IProjectStats
         int applicationsCount = _config.TaskConfigs.Count;
         Debug.LogWarning($"apps count is {applicationsCount}");
 
-        int DAY_CYCLE_FACTOR = SimulationManager.Instance.MaxSimulationTime / 
-        3600 / 24;
-
-        //float totalSimulatedGflops = SimulationManager.Instance.GetMeanHostSpeedGflops() * 
-        //SimulationManager.Instance.MaxSimulationTime * 
-        //SimulationManager.Instance.TotalClientsCount / DAY_CYCLE_FACTOR;
+        int DAY_CYCLE_FACTOR = 200;
 
         float totalSimulatedGflops = SimulationManager.Instance.GridTotalPower * 
             SimulationManager.Instance.MaxSimulationTime / DAY_CYCLE_FACTOR;
@@ -215,12 +213,17 @@ public class ProjectModel : BaseActor, IProjectStats
             if (_validationQueue.Count > 0)
             {
                 var reply = _validationQueue.Dequeue();
+                Debug.Log($"[{ActorName}] Validator dequeued reply for {reply.WorkunitName}.");
 
                 if (_taskDatabase.TryGetValue(reply.WorkunitName, out var task))
                 {
-                    var workunit = task.Workunits.FirstOrDefault(w => w.workunitId == reply.ResultId);
-                    if (workunit == null) continue;
-
+                                    Debug.Log($"Searching for ResultId {reply.ResultId} in task '{task.Name}' which has {task.Workunits.Count} workunits: [{string.Join(", ", task.Workunits.Select(w => w.workunitId))}]");
+                                    var workunit = task.Workunits.FirstOrDefault(w => w.workunitId == reply.ResultId);
+                                    if (workunit == null)
+                                    {
+                                        Debug.LogError($"Workunit with ResultId {reply.ResultId} not found for task '{task.Name}'.");
+                                        continue;
+                                    }
                     task.ReceivedResults++;
 
                     var isTimeout = workunit.deadlineTick < TimeTickSystem.Instance.CurTick;
@@ -260,6 +263,7 @@ public class ProjectModel : BaseActor, IProjectStats
 
                         if (isFinished)
                         {
+                            Debug.Log($"[{ActorName}] Task {task.Name} finished with state {task.CurrentState}. Enqueuing for assimilation.");
                             _assimilationQueue.Enqueue(task);
                         }
                         else if(isTimeout || reply.status == WorkunitStatus.Fail)
@@ -291,6 +295,7 @@ public class ProjectModel : BaseActor, IProjectStats
             if (_assimilationQueue.Count > 0)
             {
                 var taskToAssimilate = _assimilationQueue.Dequeue();
+                Debug.Log($"[{ActorName}] Assimilating task {taskToAssimilate.Name}. Firing OnWorkunitCompleted event.");
 
               
                 if (taskToAssimilate.CurrentState == TaskModel.State.Valid)

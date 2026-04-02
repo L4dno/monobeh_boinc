@@ -71,10 +71,36 @@ public class ClientModel : BaseActor, IClientStats
         switch (_currentState)
         {
             case HostState.Idle:
+                if (newState == HostState.Busy)
+                {
+                    OnBusyMode?.Invoke(this.ActorName, Host.HostPower);
+                }
+                else if (newState == HostState.Suspended)
+                {
+                    OnBusyMode?.Invoke(this.ActorName, Host.HostPower);
+                    OnGoingOffline?.Invoke(this.ActorName, Host.HostPower);
+                }
                 break;
             case HostState.Busy:
+                if (newState == HostState.Idle)
+                {
+                    OnIdleMode?.Invoke(this.ActorName, Host.HostPower);
+                }
+                else if (newState == HostState.Suspended)
+                {
+                    OnGoingOffline?.Invoke(this.ActorName, Host.HostPower);
+                }
                 break;
             case HostState.Suspended:
+                if (newState == HostState.Idle)
+                {
+                    OnGoingOnline?.Invoke(this.ActorName, Host.HostPower);
+                    OnIdleMode?.Invoke(this.ActorName, Host.HostPower);
+                }
+                else if (newState == HostState.Busy)
+                {
+                    OnGoingOnline?.Invoke(this.ActorName, Host.HostPower);
+                }
                 break;
         }
 
@@ -100,8 +126,7 @@ public class ClientModel : BaseActor, IClientStats
             // GOING ONLINE
             _isOnline = true;
             SetState(HostState.Idle);
-            OnGoingOnline?.Invoke(this.ActorName, Host.HostPower);
-            OnIdleMode?.Invoke(this.ActorName, Host.HostPower);
+            
             if (_executorCoroutine == null)
             {
                 _executorCoroutine = SimulationManager.Instance.StartCoroutine(ExecutorLoop());
@@ -116,7 +141,6 @@ public class ClientModel : BaseActor, IClientStats
             // GOING OFFLINE
             _isOnline = false;
             SetState(HostState.Suspended);
-            OnGoingOffline?.Invoke(this.ActorName, Host.HostPower);
             if (_executorCoroutine != null)
             {
                 SimulationManager.Instance.StopCoroutine(_executorCoroutine);
@@ -163,6 +187,7 @@ public class ClientModel : BaseActor, IClientStats
             var taskToRun = SelectTaskToRun();
             if (taskToRun != null)
             {
+                Debug.Log($"[{ActorName}] Scheduler selected task {taskToRun.Value.Workunit.ParentTaskName}/{taskToRun.Value.Workunit.workunitId} to run.");
                 taskToRun.Value.Project.ReadyToExecuteTasks.Enqueue(taskToRun.Value.Workunit);
             }
         }
@@ -200,6 +225,8 @@ public class ClientModel : BaseActor, IClientStats
                     ? selectedProj.Shortfall
                     : _totalShortfall / _sumPriority;
 
+                Debug.Log($"[{ActorName}] Selected project '{selectedProj.Name}' to fetch work. Shortfall: {selectedProj.Shortfall}, WorkPercentage: {workPercentage}, DeadlineMissed: {_deadlineMissedTasks.Count}");
+
                 if (_deadlineMissedTasks.Count == 0 && workPercentage > 0)
                 {
                     yield return AskForWork(selectedProj, (float)workPercentage);
@@ -227,12 +254,12 @@ public class ClientModel : BaseActor, IClientStats
             {
                 var (workunit, project) = taskToExecute.Value;
                 
+                Debug.Log($"[{ActorName}] Starting execution of workunit {workunit.ParentTaskName}/{workunit.workunitId}.");
                 project.InProgressTasks.Add(workunit);
                 SetState(HostState.Busy);
-                OnBusyMode?.Invoke(this.ActorName, Host.HostPower);
                 yield return new Activity(workunit.durationInFlops, this.Host);
                 SetState(HostState.Idle);
-                OnIdleMode?.Invoke(this.ActorName, Host.HostPower);
+                
                 project.InProgressTasks.Remove(workunit);
 
                 var wallTime = TimeTickSystem.Instance.CurTick - _lastWallTick;
@@ -259,6 +286,7 @@ public class ClientModel : BaseActor, IClientStats
                     (int)(workunit.durationInFlops * 0.0001f),
                     workunit.outputByteSize
                 );
+                Debug.Log($"[{ActorName}] Finished execution of {workunit.ParentTaskName}/{workunit.workunitId}. Status: {status}, Result: {result}. Enqueuing reply.");
                 project.CompletedTasks.Enqueue(reply);
             }
             else
@@ -270,12 +298,17 @@ public class ClientModel : BaseActor, IClientStats
 
     private IEnumerator AskForWork(ClientProject proj, float workPercentage)
     {
+        if (proj.CompletedTasks.Count > 0)
+        {
+            Debug.Log($"[{ActorName}] Sending {proj.CompletedTasks.Count} completed tasks to {proj.ProjectActorName}.");
+        }
         while (proj.CompletedTasks.Count > 0)
         {
             var reply = proj.CompletedTasks.Dequeue();
             yield return Push(proj.ProjectActorName, reply);
         }
 
+        Debug.Log($"[{ActorName}] Asking {proj.ProjectActorName} for work.");
         var request = new ClientRequestData(this.ActorName, (int)Host.HostPower, workPercentage);
         yield return Push(proj.ProjectActorName, request);
         
@@ -294,6 +327,7 @@ public class ClientModel : BaseActor, IClientStats
 
         if (message is ServerReplyData serverReply)
         {
+            Debug.Log($"[{ActorName}] Received {serverReply.workunits.Count} new workunits from {proj.ProjectActorName}.");
             if (serverReply.workunits.Any())
             {
                 _currentConnectionInterval /= 2;

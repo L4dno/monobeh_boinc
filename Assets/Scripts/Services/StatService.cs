@@ -7,9 +7,9 @@ public class StatService : IStatService
         // Возвращаем копию, чтобы вызывающий код не мог изменить состояние сервиса
         return new StatsData
         {
-            ActivePower = data.ActivePower,
+            OnlinePower = data.OnlinePower,
             IdlePower = data.IdlePower,
-            UnfinishedWorkunits = data.UnfinishedWorkunits
+            UnfinishedTasks = data.UnfinishedTasks
         };
     }
 
@@ -28,12 +28,12 @@ public class StatService : IStatService
 
     private void OnGoingOffline(string hostName, float power)
     {
-        data.ActivePower -= power;
+        data.OnlinePower -= power;
     }
 
     private void OnGoingOnline(string hostName, float power)
     {
-        data.ActivePower += power;
+        data.OnlinePower += power;
     }
 
     private void OnIdleMode(string hostName, float power)
@@ -48,11 +48,11 @@ public class StatService : IStatService
 
     private void OnWorkunitCompleted()
     {
-        data.UnfinishedWorkunits -= 1;
+        data.UnfinishedTasks -= 1;
     }
 
     private void OnWorkunitCreated()
     {
-        data.UnfinishedWorkunits += 1;
+        data.UnfinishedTasks += 1;
     }
 }
