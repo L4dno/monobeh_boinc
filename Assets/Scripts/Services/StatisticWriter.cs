@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections;
+using System.Globalization;
 using System.IO;
 
 
@@ -15,6 +16,9 @@ public partial class SimulationManager
     const string PARAMS_FILE = "parameters.json";
 
     const string GRID_FILE = "grid.csv";
+
+    private static string ToCsv(int value) => value.ToString(CultureInfo.InvariantCulture);
+    private static string ToCsv(float value) => value.ToString(CultureInfo.InvariantCulture);
 
 
 public StatisticWriter(SimConfig simConfig, IStatService statService)
@@ -88,7 +92,7 @@ public StatisticWriter(SimConfig simConfig, IStatService statService)
                     float gridUtil = stats.OnlinePower > 0 ? (stats.OnlinePower - stats.IdlePower) / stats.OnlinePower : 0;
                     Debug.LogWarning($"current online power is {stats.OnlinePower}, idle power is {stats.IdlePower}");
                     int timestamp = TimeTickSystem.Instance.CurTick;
-                    file.WriteLine($"{timestamp},{gridUtil}");
+                    file.WriteLine($"{ToCsv(timestamp)},{ToCsv(gridUtil)}");
                 }
         }
         catch (System.Exception ex)
@@ -122,8 +126,8 @@ public StatisticWriter(SimConfig simConfig, IStatService statService)
             {
                 using (StreamWriter file = new StreamWriter(filePath, true))
                 {
-                    double timestamp = TimeTickSystem.Instance.CurTick;
-                    file.WriteLine($"{timestamp},{_statService.GetStats().UnfinishedTasks}");
+                    int timestamp = TimeTickSystem.Instance.CurTick;
+                    file.WriteLine($"{ToCsv(timestamp)},{ToCsv(_statService.GetStats().UnfinishedTasks)}");
                 }
             }
             catch (System.Exception ex)
