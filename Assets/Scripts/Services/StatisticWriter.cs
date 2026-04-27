@@ -1,9 +1,6 @@
 using UnityEngine;
 using System.Collections;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Globalization;
 
 
 public partial class SimulationManager
@@ -18,8 +15,6 @@ public partial class SimulationManager
     const string PARAMS_FILE = "parameters.json";
 
     const string GRID_FILE = "grid.csv";
-
-    const string HOST_UTILIZATION_FILE = "host_utilization.csv";
 
 
 public StatisticWriter(SimConfig simConfig, IStatService statService)
@@ -50,7 +45,6 @@ public StatisticWriter(SimConfig simConfig, IStatService statService)
     {
         string workunitsPath = Path.Combine(_outputDir, WORKUNITS_FILE);
         string paramsPath = Path.Combine(_outputDir, PARAMS_FILE);
-        string hostPath = Path.Combine(_outputDir, HOST_UTILIZATION_FILE);
         string gridPath = Path.Combine(_outputDir, GRID_FILE);
 
         using (StreamWriter file = new StreamWriter(gridPath, false))
@@ -67,15 +61,6 @@ public StatisticWriter(SimConfig simConfig, IStatService statService)
         using (StreamWriter file = new StreamWriter(paramsPath, false))
         {
             file.WriteLine(paramsJson);
-        }
-        using (StreamWriter file = new StreamWriter(hostPath, false))
-        {
-            var header = new System.Text.StringBuilder("timestamp");
-            for (int i = 0; i < SimulationManager.Instance.hosts.Count; i++)
-            {
-                header.Append($",host_{i}");
-            }
-            file.WriteLine(header.ToString());
         }
 
 
@@ -123,69 +108,11 @@ public StatisticWriter(SimConfig simConfig, IStatService statService)
             WriteWorkStatsToFile();
         }
     }
-      public IEnumerator WriteHostCsv()
-            {
-                
-                WriteHostStatsToFile();
-    
-                while (true)
-                {
-                    yield return new WaitForTicks(Interval * 2);
-                    WriteHostStatsToFile();
-                }
-}
     public void WriteStats()
     {
         WriteWorkStatsToFile();
-        WriteHostStatsToFile();
         WriteGridPowerToFile();
             }
-
-    private void WriteHostStatsToFile()
-    {
-        // var wuSent = GlobalStats.WorkunitsSent.Values.Sum();
-        // var wuLate = GlobalStats.LateWorkunitResults.Values.Sum();
-        // var wuError = GlobalStats.ErrorWorkunitResults.Values.Sum();
-        // var wuValid = GlobalStats.ValidWorkunitResults.Values.Sum();
-        // var wuReceived = GlobalStats.WorkunitResultsReceived.Values.Sum();
-
-        // Debug.Log($"wu sent: {wuSent}");
-        // Debug.Log($"wu late: {wuLate}");
-        // Debug.Log($"wu error: {wuError}");
-        // Debug.Log($"wu valid: {wuValid}");
-        // Debug.Log($"wu received: {wuReceived}");
-
-
-        string filePath = Path.Combine(_outputDir, HOST_UTILIZATION_FILE);
-
-            using (StreamWriter file = new StreamWriter(filePath, true))
-            {
-                double timestamp = TimeTickSystem.Instance.CurTick;
-
-                var hostUtilizations = new List<string>();
-                int numberOfHosts = Instance.hosts.Count;
-
-                for (int i = 0; i < numberOfHosts; i++)
-                {
-                    //int busy = GlobalStats.TotalBusyTimeByHost.ContainsKey(i) ? GlobalStats.TotalBusyTimeByHost[i] : 0;
-                    //int idle = GlobalStats.TotalIdleTimeByHost.ContainsKey(i) ? GlobalStats.TotalIdleTimeByHost[i] : 0;
-                    //int suspended = GlobalStats.TotalSuspendedTimeByHost.ContainsKey(i) ? GlobalStats.TotalSuspendedTimeByHost[i] : 0;
-
-                    //int totalTime = busy + idle;
-
-                    float utilization = 0;
-                    // if (totalTime > 0)
-                    // {
-                    //     utilization = ((float)busy / totalTime);
-                    // }
-
-                    hostUtilizations.Add(utilization.ToString("F2", CultureInfo.InvariantCulture));
-                }
-
-                string utils = string.Join(",", hostUtilizations);
-                file.WriteLine($"{timestamp},{utils}");
-            }
-        }
 
         private void WriteWorkStatsToFile()
         {

@@ -130,7 +130,8 @@ public class ProjectModel : BaseActor, IProjectStats
         int applicationsCount = _config.TaskConfigs.Count;
         Debug.LogWarning($"apps count is {applicationsCount}");
 
-        int DAY_CYCLE_FACTOR = 200;
+        int DAY_CYCLE_FACTOR = SimulationManager.Instance.MaxSimulationTime / 
+        3600 / 24;
 
         float totalSimulatedGflops = SimulationManager.Instance.GridTotalPower * 
             SimulationManager.Instance.MaxSimulationTime / DAY_CYCLE_FACTOR;

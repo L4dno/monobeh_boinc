@@ -51,7 +51,6 @@ public partial class SimulationManager : MonoBehaviour
 
         statisticWriter = new StatisticWriter(_config, Container.Instance.StatService);
         StartCoroutine(statisticWriter.WriteTaskCsv());
-        StartCoroutine(statisticWriter.WriteHostCsv());
         StartCoroutine(statisticWriter.WriteGridPowerCsv());
     
         // start all actors main loop coroutine
