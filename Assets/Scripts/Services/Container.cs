@@ -7,6 +7,8 @@ public class Container : MonoBehaviour
     public IStatService StatService {get; private set;}
     public Coroutines Coroutines {get; private set;}
 
+    public IStatSaver StatSaver {get; private set;}
+
     public static Container Instance {get; private set; }
 
     private void Awake() {
@@ -16,5 +18,6 @@ public class Container : MonoBehaviour
         ConfigProvider = new ConfigProvider();
         Coroutines = gameObject.AddComponent<Coroutines>();
         StatService = new StatService();
+        StatSaver = new StatisticWriter(ConfigProvider, Coroutines, StatService);
     }
 }

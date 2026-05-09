@@ -6,19 +6,25 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using System;
+using System.IO;
+using System.ComponentModel;
 
-public partial class SimulationManager : MonoBehaviour
+public class SimulationManager : MonoBehaviour
 {
+    // запуск дампа статистики надо вынести в энтри поинт
+    private const int StatisticsDumpInterval = 3600;
+    private IStatSaver _statisticWriter;
 
+    private SimConfig _config;
+
+    // мне надо передавать ссылку на себя во все хранящиеся внутри окружения акторы?
     public static SimulationManager Instance {get; private set;}
 
     public Dictionary<string, BaseActor> Actors { get; private set; }
     private List<HostModel> hosts;
     public LinkModel Link {get; private set;} 
+
     
-    // осуществляет перенаправление статистики от групп к проекту 
-    public float GridTotalPower {get; private set;}
-    private SimConfig _config;
     
     public void RegisterActor(BaseActor actor)
     {
@@ -32,7 +38,8 @@ public partial class SimulationManager : MonoBehaviour
         }
     }
 
-    private StatisticWriter statisticWriter;
+    // разрешает зависимости внутренне тк монобех
+    // все перенесем в энтри поинт
     private void Start()
     {
         var configProvider = Container.Instance.ConfigProvider;
@@ -49,9 +56,14 @@ public partial class SimulationManager : MonoBehaviour
         CreatePlatform();
         CreateDeployment();
 
-        statisticWriter = new StatisticWriter(_config, Container.Instance.StatService);
-        StartCoroutine(statisticWriter.WriteTaskCsv());
-        StartCoroutine(statisticWriter.WriteGridPowerCsv());
+        // теперь в менеджере будет 1 почасовая корутина
+        // которая вызывает дамп статов у стат сейвера
+        // где надо выводить последний раз и закрывать файл??
+        // там же где и создается файлы
+
+        
+        _statisticWriter = Container.Instance.StatSaver;
+        StartCoroutine(DumpStatisticsLoop());
     
         // start all actors main loop coroutine
         foreach (var actor in Actors.Values)
@@ -61,32 +73,28 @@ public partial class SimulationManager : MonoBehaviour
         
     }
 
+    // надо сделать зависимым от эпизода
     private int _maxSimulationTime;
     public int MaxSimulationTime => _maxSimulationTime;
-    public int TotalClientsCount
-    {
-        get
-        {
-            return _config.GroupConfig.NumberOfClients;
-        }
-    }
 
-    public float GetMeanHostSpeedGflops()
+    // это вынесем
+    private IEnumerator DumpStatisticsLoop()
     {
-        return 1.0f / _config.GroupConfig.RandomConfig.PowerA;
+        _statisticWriter.Dump();
+        while (true)
+        {
+            yield return new WaitForTicks(StatisticsDumpInterval);
+            _statisticWriter.Dump();
+        }
     }
 
     private void Tick(int curTick)
     {
-        if (curTick % 3600 == 0)
-        {
-            //Debug.Log($"tick: {curTick/3600}");
-        }
         if (curTick == _maxSimulationTime)
             {
                 // print statistics
                 StopAllCoroutines();
-                statisticWriter.WriteStats();
+                _statisticWriter.Dump();
                 QuitGame();
             }
     }
@@ -105,7 +113,6 @@ public partial class SimulationManager : MonoBehaviour
             hosts.Add(new HostModel(_config.ProjectConfig.ServerPowerGflops, hostId));
         }
         
-        GridTotalPower = 0;
         for (int i = 0; i < _config.GroupConfig.NumberOfClients; i++, hostId++)
         {
             float power = RandomUtils.GetDistribution(
@@ -113,7 +120,7 @@ public partial class SimulationManager : MonoBehaviour
                  _config.GroupConfig.RandomConfig.PowerA, 
                  _config.GroupConfig.RandomConfig.PowerB);
             power = Mathf.Clamp(power, _config.GroupConfig.MinSpeed, _config.GroupConfig.MaxSpeed);
-            GridTotalPower += power;
+            // здесь отправляем событие для подсчета всей мощности грида
             hosts.Add(new HostModel(power, hostId));
         }
     }
@@ -147,6 +154,7 @@ public partial class SimulationManager : MonoBehaviour
         }
     }
 
+    // это тоже убрать
     private void QuitGame()
     {
         #if UNITY_EDITOR

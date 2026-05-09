@@ -133,8 +133,8 @@ public class ProjectModel : BaseActor, IProjectStats
         int DAY_CYCLE_FACTOR = SimulationManager.Instance.MaxSimulationTime / 
         3600 / 24;
 
-        float totalSimulatedGflops = SimulationManager.Instance.GridTotalPower * 
-            SimulationManager.Instance.MaxSimulationTime / DAY_CYCLE_FACTOR;
+        float totalSimulatedGflops = 1000;//SimulationManager.Instance.GridTotalPower * 
+            //SimulationManager.Instance.MaxSimulationTime / DAY_CYCLE_FACTOR;
         Debug.LogWarning($"total gflops for all {totalSimulatedGflops}");
 
         float gflopsPerApplication = totalSimulatedGflops / applicationsCount;
