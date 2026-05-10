@@ -24,7 +24,7 @@ public class ClientModel : BaseActor, IClientStats
     private double _totalShortfall;
     private double _lastWallTick;
     private bool _isOnline = true;
-    private readonly List<(WorkunitData Workunit, ClientProject Project)> _deadlineMissedTasks = new List<(WorkunitData, ClientProject)>();
+    private readonly List<(ResultData Result, ClientProject Project)> _deadlineMissedResults = new List<(ResultData, ClientProject)>();
     private Coroutine _executorCoroutine;
     
     private HostState _currentState;
@@ -33,6 +33,7 @@ public class ClientModel : BaseActor, IClientStats
     private readonly float _baseConnectionInterval;
     private float _currentConnectionInterval;
     private const float MAX_CONNECTION_INTERVAL = 86400;
+    private TimeTickSystem TimeSystem => Container.Instance.TimeSystem;
 
     public ClientModel(GroupConfig config, ProjectConfig[] projectConfigs, int actorId, HostModel host) : base($"client{actorId}", host)
     {
@@ -50,7 +51,7 @@ public class ClientModel : BaseActor, IClientStats
         }
 
         _currentState = HostState.Suspended;
-        _lastStateChangeTick = (int)TimeTickSystem.Instance.CurTick;
+        _lastStateChangeTick = TimeSystem.CurTick;
     }
 
     private void SetState(HostState newState)
@@ -60,7 +61,7 @@ public class ClientModel : BaseActor, IClientStats
             return;
         }
 
-        int currentTick = (int)TimeTickSystem.Instance.CurTick;
+        int currentTick = TimeSystem.CurTick;
         int duration = currentTick - _lastStateChangeTick;
 
         if (duration < 0)
@@ -112,10 +113,10 @@ public class ClientModel : BaseActor, IClientStats
     {
         yield return new WaitForTicks((int)RandomUtils.GetDistribution(Distribution.Uniform, 0, 3600));
 
-        SimulationManager.Instance.StartCoroutine(AvailabilityLoop());
-        SimulationManager.Instance.StartCoroutine(SchedulerLoop());
-        SimulationManager.Instance.StartCoroutine(WorkFetchLoop());
-        _executorCoroutine = SimulationManager.Instance.StartCoroutine(ExecutorLoop());
+        SimManager.StartCoroutine(AvailabilityLoop());
+        SimManager.StartCoroutine(SchedulerLoop());
+        SimManager.StartCoroutine(WorkFetchLoop());
+        _executorCoroutine = SimManager.StartCoroutine(ExecutorLoop());
         yield break;
     }
 
@@ -129,7 +130,7 @@ public class ClientModel : BaseActor, IClientStats
             
             if (_executorCoroutine == null)
             {
-                _executorCoroutine = SimulationManager.Instance.StartCoroutine(ExecutorLoop());
+                _executorCoroutine = SimManager.StartCoroutine(ExecutorLoop());
             }
             var onlineDuration = (int)(RandomUtils.GetDistribution(
                                        _config.RandomConfig.HostAvailabilityDistri,
@@ -143,19 +144,19 @@ public class ClientModel : BaseActor, IClientStats
             SetState(HostState.Suspended);
             if (_executorCoroutine != null)
             {
-                SimulationManager.Instance.StopCoroutine(_executorCoroutine);
+                SimManager.StopCoroutine(_executorCoroutine);
                 _executorCoroutine = null;
 
                 foreach (var proj in _projects.Values)
                 {
-                    if (proj.InProgressTasks.Any())
+                    if (proj.InProgressResults.Any())
                     {
-                        var orphanedTasks = new List<WorkunitData>(proj.InProgressTasks);
-                        proj.InProgressTasks.Clear();
-                        foreach (var task in orphanedTasks)
+                        var orphanedResults = new List<ResultData>(proj.InProgressResults);
+                        proj.InProgressResults.Clear();
+                        foreach (var result in orphanedResults)
                         {
-                            // Return task to the available queue to be rescheduled from scratch.
-                            proj.AvailableTasks.Enqueue(task);
+                            // Return result to the available queue to be rescheduled from scratch.
+                            proj.AvailableResults.Enqueue(result);
                         }
                     }
                 }
@@ -172,7 +173,7 @@ public class ClientModel : BaseActor, IClientStats
     
     private IEnumerator SchedulerLoop()
     {
-        _lastWallTick = TimeTickSystem.Instance.CurTick;
+        _lastWallTick = TimeSystem.CurTick;
         while (true)
         {
             if (!_isOnline)
@@ -182,13 +183,13 @@ public class ClientModel : BaseActor, IClientStats
             
             yield return new WaitForTicks(_config.SchedulingInterval);
             UpdateDebt();
-            UpdateDeadlineMissedTasks();
+            UpdateDeadlineMissedResults();
             
-            var taskToRun = SelectTaskToRun();
-            if (taskToRun != null)
+            var resultToRun = SelectResultToRun();
+            if (resultToRun != null)
             {
-                Debug.Log($"[{ActorName}] Scheduler selected task {taskToRun.Value.Workunit.ParentTaskName}/{taskToRun.Value.Workunit.workunitId} to run.");
-                taskToRun.Value.Project.ReadyToExecuteTasks.Enqueue(taskToRun.Value.Workunit);
+                Debug.Log($"[{ActorName}] Scheduler selected result {resultToRun.Value.Result.WorkunitName}/{resultToRun.Value.Result.resultNumber} to run.");
+                resultToRun.Value.Project.ReadyToExecuteResults.Enqueue(resultToRun.Value.Result);
             }
         }
     }
@@ -225,9 +226,9 @@ public class ClientModel : BaseActor, IClientStats
                     ? selectedProj.Shortfall
                     : _totalShortfall / _sumPriority;
 
-                Debug.Log($"[{ActorName}] Selected project '{selectedProj.Name}' to fetch work. Shortfall: {selectedProj.Shortfall}, WorkPercentage: {workPercentage}, DeadlineMissed: {_deadlineMissedTasks.Count}");
+                Debug.Log($"[{ActorName}] Selected project '{selectedProj.Name}' to fetch work. Shortfall: {selectedProj.Shortfall}, WorkPercentage: {workPercentage}, DeadlineMissed: {_deadlineMissedResults.Count}");
 
-                if (_deadlineMissedTasks.Count == 0 && workPercentage > 0)
+                if (_deadlineMissedResults.Count == 0 && workPercentage > 0)
                 {
                     yield return AskForWork(selectedProj, (float)workPercentage);
                 }
@@ -239,55 +240,55 @@ public class ClientModel : BaseActor, IClientStats
     {
         while (true)
         {
-            (WorkunitData workunit, ClientProject project)? taskToExecute = null;
+            (ResultData result, ClientProject project)? resultToExecute = null;
 
             foreach (var proj in _projects.Values)
             {
-                if (proj.ReadyToExecuteTasks.Count > 0)
+                if (proj.ReadyToExecuteResults.Count > 0)
                 {
-                    taskToExecute = (proj.ReadyToExecuteTasks.Dequeue(), proj);
+                    resultToExecute = (proj.ReadyToExecuteResults.Dequeue(), proj);
                     break;
                 }
             }
 
-            if (taskToExecute.HasValue)
+            if (resultToExecute.HasValue)
             {
-                var (workunit, project) = taskToExecute.Value;
+                var (result, project) = resultToExecute.Value;
                 
-                Debug.Log($"[{ActorName}] Starting execution of workunit {workunit.ParentTaskName}/{workunit.workunitId}.");
-                project.InProgressTasks.Add(workunit);
+                Debug.Log($"[{ActorName}] Starting execution of result {result.WorkunitName}/{result.resultNumber}.");
+                project.InProgressResults.Add(result);
                 SetState(HostState.Busy);
-                yield return new Activity(workunit.durationInFlops, this.Host);
+                yield return new Activity(result.durationInFlops, this.Host);
                 SetState(HostState.Idle);
                 
-                project.InProgressTasks.Remove(workunit);
+                project.InProgressResults.Remove(result);
 
-                var wallTime = TimeTickSystem.Instance.CurTick - _lastWallTick;
+                var wallTime = TimeSystem.CurTick - _lastWallTick;
                 project.WallCpuTime += wallTime;
-                _lastWallTick = TimeTickSystem.Instance.CurTick;
+                _lastWallTick = TimeSystem.CurTick;
 
-                var status = WorkunitStatus.Fail;
-                var result = WorkunitResult.Incorrect;
+                var status = ResultStatus.Fail;
+                var value = ResultValue.Incorrect;
                 if (UnityEngine.Random.Range(0, 100) < project.Config.SuccessPercentage)
                 {
-                    status = WorkunitStatus.Success;
+                    status = ResultStatus.Success;
                     if (UnityEngine.Random.Range(0, 100) < project.Config.CanonicalPercentage)
                     {
-                        result = WorkunitResult.Correct;
+                        value = ResultValue.Correct;
                     }
                 }
                 
                 var reply = new ClientReplyData(
                     this.ActorName,
                     status,
-                    result, 
-                    workunit.ParentTaskName,
-                    workunit.workunitId,
-                    (int)(workunit.durationInFlops * 0.0001f),
-                    workunit.outputByteSize
+                    value, 
+                    result.WorkunitName,
+                    result.resultNumber,
+                    (int)(result.durationInFlops * 0.0001f),
+                    result.outputByteSize
                 );
-                Debug.Log($"[{ActorName}] Finished execution of {workunit.ParentTaskName}/{workunit.workunitId}. Status: {status}, Result: {result}. Enqueuing reply.");
-                project.CompletedTasks.Enqueue(reply);
+                Debug.Log($"[{ActorName}] Finished execution of {result.WorkunitName}/{result.resultNumber}. Status: {status}, Value: {value}. Enqueuing reply.");
+                project.CompletedResults.Enqueue(reply);
             }
             else
             {
@@ -298,13 +299,13 @@ public class ClientModel : BaseActor, IClientStats
 
     private IEnumerator AskForWork(ClientProject proj, float workPercentage)
     {
-        if (proj.CompletedTasks.Count > 0)
+        if (proj.CompletedResults.Count > 0)
         {
-            Debug.Log($"[{ActorName}] Sending {proj.CompletedTasks.Count} completed tasks to {proj.ProjectActorName}.");
+            Debug.Log($"[{ActorName}] Sending {proj.CompletedResults.Count} completed results to {proj.ProjectActorName}.");
         }
-        while (proj.CompletedTasks.Count > 0)
+        while (proj.CompletedResults.Count > 0)
         {
-            var reply = proj.CompletedTasks.Dequeue();
+            var reply = proj.CompletedResults.Dequeue();
             yield return Push(proj.ProjectActorName, reply);
         }
 
@@ -327,8 +328,8 @@ public class ClientModel : BaseActor, IClientStats
 
         if (message is ServerReplyData serverReply)
         {
-            Debug.Log($"[{ActorName}] Received {serverReply.workunits.Count} new workunits from {proj.ProjectActorName}.");
-            if (serverReply.workunits.Any())
+            Debug.Log($"[{ActorName}] Received {serverReply.results.Count} new results from {proj.ProjectActorName}.");
+            if (serverReply.results.Any())
             {
                 _currentConnectionInterval /= 2;
                 if (_currentConnectionInterval < _baseConnectionInterval)
@@ -336,9 +337,9 @@ public class ClientModel : BaseActor, IClientStats
                     _currentConnectionInterval = _baseConnectionInterval;
                 }
                 
-                foreach (var workunit in serverReply.workunits)
+                foreach (var result in serverReply.results)
                 {
-                    proj.AvailableTasks.Enqueue(workunit);
+                    proj.AvailableResults.Enqueue(result);
                 }
             }
             else
@@ -356,7 +357,7 @@ public class ClientModel : BaseActor, IClientStats
     {
         double totalWallCpuTime = _projects.Values.Sum(p => p.WallCpuTime);
         double runnablePrioritySum = _projects.Values
-            .Where(p => p.AvailableTasks.Any() || p.InProgressTasks.Any())
+            .Where(p => p.AvailableResults.Any() || p.InProgressResults.Any())
             .Sum(p => p.Priority);
 
         foreach (var proj in _projects.Values)
@@ -383,8 +384,8 @@ public class ClientModel : BaseActor, IClientStats
         foreach (var proj in _projects.Values)
         {
             double projectWorkDuration = 0;
-            projectWorkDuration += proj.AvailableTasks.Sum(t => t.durationInFlops / Host.HostPower);
-            projectWorkDuration += proj.InProgressTasks.Sum(t => (t.durationInFlops / Host.HostPower) - (TimeTickSystem.Instance.CurTick - _lastWallTick));
+            projectWorkDuration += proj.AvailableResults.Sum(t => t.durationInFlops / Host.HostPower);
+            projectWorkDuration += proj.InProgressResults.Sum(t => (t.durationInFlops / Host.HostPower) - (TimeSystem.CurTick - _lastWallTick));
 
             proj.Shortfall = _config.ConnectionInterval * (proj.Priority / _sumPriority) - projectWorkDuration;
             if (proj.Shortfall < 0) proj.Shortfall = 0;
@@ -396,86 +397,86 @@ public class ClientModel : BaseActor, IClientStats
         if (_totalShortfall < 0) _totalShortfall = 0;
     }
     
-    private void UpdateDeadlineMissedTasks()
+    private void UpdateDeadlineMissedResults()
     {
-        _deadlineMissedTasks.Clear();
+        _deadlineMissedResults.Clear();
 
-        var allTasks = new List<(WorkunitData, ClientProject)>();
+        var allResults = new List<(ResultData, ClientProject)>();
         foreach (var proj in _projects.Values)
         {
-            allTasks.AddRange(proj.AvailableTasks.Select(t => (t, proj)));
-            allTasks.AddRange(proj.InProgressTasks.Select(t => (t, proj)));
+            allResults.AddRange(proj.AvailableResults.Select(t => (t, proj)));
+            allResults.AddRange(proj.InProgressResults.Select(t => (t, proj)));
         }
 
-        if (!allTasks.Any()) return;
+        if (!allResults.Any()) return;
 
-        var simTasks = allTasks.Select(t => new SimTask
+        var simResults = allResults.Select(t => new SimResult
         {
-            Task = t,
+            Result = t,
             RemainingDuration = t.Item1.durationInFlops / Host.HostPower
         }).ToList();
 
-        double clockSim = TimeTickSystem.Instance.CurTick;
+        double clockSim = TimeSystem.CurTick;
         
-        while (simTasks.Any())
+        while (simResults.Any())
         {
-            double sumPriority = simTasks.Select(t => t.Task.Item2.Priority).Distinct().Sum();
-            (WorkunitData Workunit, ClientProject Project) minTask = (null, null);
+            double sumPriority = simResults.Select(t => t.Result.Item2.Priority).Distinct().Sum();
+            (ResultData Result, ClientProject Project) minResult = (null, null);
             double minFinishTime = double.MaxValue;
 
-            foreach (var simTask in simTasks)
+            foreach (var simResult in simResults)
             {
-                var proj = simTask.Task.Item2;
-                var tasksInProj = simTasks.Count(t => t.Task.Item2 == proj);
-                var finishTime = clockSim + (simTask.RemainingDuration / (proj.Priority / sumPriority)) * tasksInProj;
+                var proj = simResult.Result.Item2;
+                var resultsInProj = simResults.Count(t => t.Result.Item2 == proj);
+                var finishTime = clockSim + (simResult.RemainingDuration / (proj.Priority / sumPriority)) * resultsInProj;
 
                 if (finishTime < minFinishTime)
                 {
                     minFinishTime = finishTime;
-                    minTask = simTask.Task;
+                    minResult = simResult.Result;
                 }
             }
 
-            if (minTask.Item1 != null && minFinishTime > minTask.Item1.deadlineTick)
+            if (minResult.Item1 != null && minFinishTime > minResult.Item1.deadlineTick)
             {
-                if(!_deadlineMissedTasks.Contains(minTask))
-                    _deadlineMissedTasks.Add(minTask);
+                if(!_deadlineMissedResults.Contains(minResult))
+                    _deadlineMissedResults.Add(minResult);
             }
             
             var durationToSubtract = minFinishTime - clockSim;
-            simTasks.ForEach(t =>
+            simResults.ForEach(t =>
             {
-                var proj = t.Task.Item2;
-                var tasksInProj = simTasks.Count(p => p.Task.Item2 == proj);
-                t.RemainingDuration -= durationToSubtract * (proj.Priority / sumPriority) / tasksInProj;
+                var proj = t.Result.Item2;
+                var resultsInProj = simResults.Count(p => p.Result.Item2 == proj);
+                t.RemainingDuration -= durationToSubtract * (proj.Priority / sumPriority) / resultsInProj;
             });
             
-            simTasks.RemoveAll(t => t.Task.Item1 == minTask.Item1);
+            simResults.RemoveAll(t => t.Result.Item1 == minResult.Item1);
             clockSim = minFinishTime;
         }
     }
     
-    private (WorkunitData Workunit, ClientProject Project)? SelectTaskToRun()
+    private (ResultData Result, ClientProject Project)? SelectResultToRun()
     {
-        // EDF scheduler for tasks that might miss their deadline
-        if (_deadlineMissedTasks.Any())
+        // EDF scheduler for results that might miss their deadline
+        if (_deadlineMissedResults.Any())
         {
-            var taskToRun = _deadlineMissedTasks.OrderBy(t => t.Item1.deadlineTick).First();
+            var resultToRun = _deadlineMissedResults.OrderBy(t => t.Item1.deadlineTick).First();
             
-            // Rebuild the queue without the selected task
-            var newQueue = new Queue<WorkunitData>(taskToRun.Item2.AvailableTasks.Where(t => t.workunitId != taskToRun.Item1.workunitId));
-            taskToRun.Item2.AvailableTasks = newQueue;
-            _deadlineMissedTasks.Remove(taskToRun);
+            // Rebuild the queue without the selected result
+            var newQueue = new Queue<ResultData>(resultToRun.Item2.AvailableResults.Where(t => t.resultNumber != resultToRun.Item1.resultNumber));
+            resultToRun.Item2.AvailableResults = newQueue;
+            _deadlineMissedResults.Remove(resultToRun);
 
             // Check if it will miss the deadline for sure
-            var remainingTime = taskToRun.Item1.durationInFlops / Host.HostPower;
-            if (TimeTickSystem.Instance.CurTick + remainingTime > taskToRun.Item1.deadlineTick)
+            var remainingTime = resultToRun.Item1.durationInFlops / Host.HostPower;
+            if (TimeSystem.CurTick + remainingTime > resultToRun.Item1.deadlineTick)
             {
-                // Task will be missed, discard it.
+                // Result will be missed, discard it.
                 return null; 
             }
             
-            return taskToRun;
+            return resultToRun;
         }
 
         // Highest-debt-first scheduler
@@ -484,7 +485,7 @@ public class ClientModel : BaseActor, IClientStats
 
         foreach (var proj in _projects.Values)
         {
-            if (proj.AvailableTasks.Count > 0 && proj.ShortTermDebt > maxDebt)
+            if (proj.AvailableResults.Count > 0 && proj.ShortTermDebt > maxDebt)
             {
                 maxDebt = proj.ShortTermDebt;
                 bestProj = proj;
@@ -493,14 +494,14 @@ public class ClientModel : BaseActor, IClientStats
 
         if (bestProj != null)
         {
-            return (bestProj.AvailableTasks.Dequeue(), bestProj);
+            return (bestProj.AvailableResults.Dequeue(), bestProj);
         }
         return null;
     }
 
-    private class SimTask
+    private class SimResult
     {
-        public (WorkunitData Workunit, ClientProject Project) Task;
+        public (ResultData Result, ClientProject Project) Result;
         public double RemainingDuration;
     }
 }

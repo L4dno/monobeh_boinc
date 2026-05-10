@@ -18,8 +18,7 @@ public class ProjectConfig : ScriptableObject
     public int ProjectId  = 0;
 
     
-    [FormerlySerializedAs("<TaskConfigs>k__BackingField")]
-    public List<TaskConfig> TaskConfigs;
+    public List<WorkunitConfig> WorkunitConfigs;
 
     
     [FormerlySerializedAs("<ServerPowerGflops>k__BackingField")]

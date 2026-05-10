@@ -11,17 +11,18 @@ public class ProjectModel : BaseActor, IProjectStats
 
     public event Action OnWorkunitCompleted;
     public string ProjectName => _config.ProjectName;
-    public IReadOnlyDictionary<string, TaskModel> TaskDatabase => _taskDatabase;
+    public IReadOnlyDictionary<string, WorkunitModel> WorkunitDatabase => _workunitDatabase;
 
     private readonly ProjectConfig _config;
     
-    private readonly Dictionary<string, TaskModel> _taskDatabase = new Dictionary<string, TaskModel>();
-    private readonly Queue<WorkunitData> _readyWorkQueue = new Queue<WorkunitData>();
+    private readonly Dictionary<string, WorkunitModel> _workunitDatabase = new Dictionary<string, WorkunitModel>();
+    private readonly Queue<ResultData> _readyResultsQueue = new Queue<ResultData>();
     private readonly Queue<ClientReplyData> _validationQueue = new Queue<ClientReplyData>();
-    private readonly Queue<WorkunitData> _errorWorkQueue = new Queue<WorkunitData>();
-    private readonly Queue<TaskModel> _assimilationQueue = new Queue<TaskModel>();
+    private readonly Queue<ResultData> _errorResultsQueue = new Queue<ResultData>();
+    private readonly Queue<WorkunitModel> _assimilationQueue = new Queue<WorkunitModel>();
+    private TimeTickSystem TimeSystem => Container.Instance.TimeSystem;
 
-    public int TasksCreated = 0;
+    public int WorkunitsCreated = 0;
 
     public ProjectModel(ProjectConfig config, int actorId, HostModel host) : base($"project{actorId}", host)
     {
@@ -31,10 +32,10 @@ public class ProjectModel : BaseActor, IProjectStats
 
     public override IEnumerator MainLoop()
     {
-        SimulationManager.Instance.StartCoroutine(TaskGeneratorLoop());
-        SimulationManager.Instance.StartCoroutine(ResultGeneratorLoop());
-        SimulationManager.Instance.StartCoroutine(ValidatorLoop());
-        SimulationManager.Instance.StartCoroutine(AssimilatorLoop());
+        SimManager.StartCoroutine(WorkunitGeneratorLoop());
+        SimManager.StartCoroutine(ResultGeneratorLoop());
+        SimManager.StartCoroutine(ValidatorLoop());
+        SimManager.StartCoroutine(AssimilatorLoop());
         yield return RequestDispatcherLoop();
     }
 
@@ -65,102 +66,102 @@ public class ProjectModel : BaseActor, IProjectStats
 
     private IEnumerator ProcessWorkRequest(ClientRequestData request)
     {
-        var workToSend = new List<WorkunitData>();
-        var sentTaskNames = new HashSet<string>();
+        var resultsToSend = new List<ResultData>();
+        var sentWorkunitNames = new HashSet<string>();
         
-        if (_readyWorkQueue.Count > 0)
+        if (_readyResultsQueue.Count > 0)
         {
             float totalDuration = 0;
 
-            foreach (var candidate in _readyWorkQueue)
+            foreach (var candidate in _readyResultsQueue)
             {
-                if (sentTaskNames.Contains(candidate.ParentTaskName))
+                if (sentWorkunitNames.Contains(candidate.WorkunitName))
                 {
                     continue;
                 }
                 
-                float workunitDuration = candidate.durationInFlops / request.Power;
+                float resultDuration = candidate.durationInFlops / request.Power;
 
-                if (totalDuration + workunitDuration <= request.Percentage)
+                if (totalDuration + resultDuration <= request.Percentage)
                 {
-                    totalDuration += workunitDuration;
-                    workToSend.Add(candidate);
-                    sentTaskNames.Add(candidate.ParentTaskName);
+                    totalDuration += resultDuration;
+                    resultsToSend.Add(candidate);
+                    sentWorkunitNames.Add(candidate.WorkunitName);
                 }
             }
             
-            if (workToSend.Count == 0 && _readyWorkQueue.Count > 0)
+            if (resultsToSend.Count == 0 && _readyResultsQueue.Count > 0)
             {
-                workToSend.Add(_readyWorkQueue.First());
+                resultsToSend.Add(_readyResultsQueue.First());
             }
             
-            if (workToSend.Any())
+            if (resultsToSend.Any())
             {
-                var workToSendSet = new HashSet<WorkunitData>(workToSend);
-                var newQueue = new Queue<WorkunitData>(_readyWorkQueue.Where(w => !workToSendSet.Contains(w)));
+                var resultsToSendSet = new HashSet<ResultData>(resultsToSend);
+                var newQueue = new Queue<ResultData>(_readyResultsQueue.Where(w => !resultsToSendSet.Contains(w)));
                 
-                foreach (var workunit in workToSend)
+                foreach (var result in resultsToSend)
                 {
-                    if (_taskDatabase.TryGetValue(workunit.ParentTaskName, out var task))
+                    if (_workunitDatabase.TryGetValue(result.WorkunitName, out var workunit))
                     {
-                        workunit.deadlineTick = TimeTickSystem.Instance.CurTick + task.DelayBound;
+                        result.deadlineTick = TimeSystem.CurTick + workunit.DelayBound;
                     }
                 }
 
-                _readyWorkQueue.Clear();
+                _readyResultsQueue.Clear();
                 while (newQueue.Any())
                 {
-                    _readyWorkQueue.Enqueue(newQueue.Dequeue());
+                    _readyResultsQueue.Enqueue(newQueue.Dequeue());
                 }
             }
         }
 
         
-        var reply = new ServerReplyData(workToSend);
-        Debug.Log($"[{ActorName}] Sending {workToSend.Count} workunits to {request.RequesterName}. Ready queue size: {_readyWorkQueue.Count}");
+        var reply = new ServerReplyData(resultsToSend);
+        Debug.Log($"[{ActorName}] Sending {resultsToSend.Count} results to {request.RequesterName}. Ready queue size: {_readyResultsQueue.Count}");
         yield return Push(request.RequesterName, reply);
     }
 
-    private IEnumerator TaskGeneratorLoop()
+    private IEnumerator WorkunitGeneratorLoop()
     {
-        Debug.Assert(_config.TaskConfigs.Any(), $"ProjectConfig '{_config.name}' has no TaskConfigs assigned.");
+        Debug.Assert(_config.WorkunitConfigs.Any(), $"ProjectConfig '{_config.name}' has no WorkunitConfigs assigned.");
 
         // TODO: расчитать долю каждого проекта
 
-        int applicationsCount = _config.TaskConfigs.Count;
+        int applicationsCount = _config.WorkunitConfigs.Count;
         Debug.LogWarning($"apps count is {applicationsCount}");
 
-        int DAY_CYCLE_FACTOR = SimulationManager.Instance.MaxSimulationTime / 
+        int DAY_CYCLE_FACTOR = SimManager.MaxSimulationTime / 
         3600 / 24;
 
-        float totalSimulatedGflops = 1000;//SimulationManager.Instance.GridTotalPower * 
-            //SimulationManager.Instance.MaxSimulationTime / DAY_CYCLE_FACTOR;
+        float totalSimulatedGflops = SimManager.GridTotalPower * 
+            SimManager.MaxSimulationTime / DAY_CYCLE_FACTOR;
         Debug.LogWarning($"total gflops for all {totalSimulatedGflops}");
 
         float gflopsPerApplication = totalSimulatedGflops / applicationsCount;
         Debug.LogWarning($"flops per app {gflopsPerApplication}");
 
-        List<int> InitialTasksPerApp = new List<int>();
-        foreach (var taskConfig in _config.TaskConfigs)
+        List<int> InitialWorkunitsPerApp = new List<int>();
+        foreach (var workunitConfig in _config.WorkunitConfigs)
         {
-            float mean = (taskConfig.MinTaskGflops + taskConfig.MaxTaskGflops) / 2f;
-            int InitialTaskCount = Mathf.CeilToInt(gflopsPerApplication / mean / taskConfig.InitialCreatedWorkunits);
-            InitialTasksPerApp.Add(InitialTaskCount);
-            Debug.LogWarning($"number of tasks for new group is {InitialTaskCount}");
+            float mean = (workunitConfig.MinWorkunitGflops + workunitConfig.MaxWorkunitGflops) / 2f;
+            int InitialWorkunitCount = Mathf.CeilToInt(gflopsPerApplication / mean / workunitConfig.InitialCreatedResults);
+            InitialWorkunitsPerApp.Add(InitialWorkunitCount);
+            Debug.LogWarning($"number of workunits for new group is {InitialWorkunitCount}");
         }
 
         // заполнить каждым конфигом массив соответствующего размера
-        //InitialTasksPerApp = new List<int>{2000};
+        //InitialWorkunitsPerApp = new List<int>{2000};
         for (int i = 0; i < applicationsCount; i++)
         {
-            for (int j = 0; j < InitialTasksPerApp[i]; j++)
+            for (int j = 0; j < InitialWorkunitsPerApp[i]; j++)
             {
-                var taskName = $"Task-{TasksCreated}";
+                var workunitName = $"Workunit-{WorkunitsCreated}";
                 // TODO: сделать соотношение между несколькими проектами
-                var selectedTaskConfig = _config.TaskConfigs[i];
-                var task = new TaskModel(taskName, selectedTaskConfig);
-                _taskDatabase.Add(taskName, task);
-                TasksCreated++;
+                var selectedWorkunitConfig = _config.WorkunitConfigs[i];
+                var workunit = new WorkunitModel(workunitName, selectedWorkunitConfig);
+                _workunitDatabase.Add(workunitName, workunit);
+                WorkunitsCreated++;
                 OnWorkunitCreated?.Invoke();
             }
             
@@ -174,26 +175,26 @@ public class ProjectModel : BaseActor, IProjectStats
         yield return null;
 
        
-        foreach (var task in _taskDatabase.Values)
+        foreach (var workunit in _workunitDatabase.Values)
         {
            
-            while (task.CanCreateInitialWork())
+            while (workunit.CanCreateInitialResults())
             {
-                _readyWorkQueue.Enqueue(task.CreateWorkunit());
+                _readyResultsQueue.Enqueue(workunit.CreateResult());
             }
         }
 
        
         while (true)
         {
-            if (_errorWorkQueue.Count > 0)
+            if (_errorResultsQueue.Count > 0)
             {
-                var workunitToRecreate = _errorWorkQueue.Dequeue();
-                if (_taskDatabase.TryGetValue(workunitToRecreate.ParentTaskName, out var task))
+                var resultToRecreate = _errorResultsQueue.Dequeue();
+                if (_workunitDatabase.TryGetValue(resultToRecreate.WorkunitName, out var workunit))
                 {
-                    if (task.CanCreateMoreWork()) // Check against absolute max
+                    if (workunit.CanCreateMoreResults()) // Check against absolute max
                     {
-                        _readyWorkQueue.Enqueue(task.CreateWorkunit());
+                        _readyResultsQueue.Enqueue(workunit.CreateResult());
                     }
                 }
                 // Yield to process one per frame to avoid freezing if the error queue is large
@@ -216,70 +217,70 @@ public class ProjectModel : BaseActor, IProjectStats
                 var reply = _validationQueue.Dequeue();
                 Debug.Log($"[{ActorName}] Validator dequeued reply for {reply.WorkunitName}.");
 
-                if (_taskDatabase.TryGetValue(reply.WorkunitName, out var task))
+                if (_workunitDatabase.TryGetValue(reply.WorkunitName, out var workunit))
                 {
-                                    Debug.Log($"Searching for ResultId {reply.ResultId} in task '{task.Name}' which has {task.Workunits.Count} workunits: [{string.Join(", ", task.Workunits.Select(w => w.workunitId))}]");
-                                    var workunit = task.Workunits.FirstOrDefault(w => w.workunitId == reply.ResultId);
-                                    if (workunit == null)
+                                    Debug.Log($"Searching for ResultNumber {reply.ResultNumber} in workunit '{workunit.Name}' which has {workunit.Results.Count} results: [{string.Join(", ", workunit.Results.Select(w => w.resultNumber))}]");
+                                    var result = workunit.Results.FirstOrDefault(w => w.resultNumber == reply.ResultNumber);
+                                    if (result == null)
                                     {
-                                        Debug.LogError($"Workunit with ResultId {reply.ResultId} not found for task '{task.Name}'.");
+                                        Debug.LogError($"Result with ResultNumber {reply.ResultNumber} not found for workunit '{workunit.Name}'.");
                                         continue;
                                     }
-                    task.ReceivedResults++;
+                    workunit.ReceivedResults++;
 
-                    var isTimeout = workunit.deadlineTick < TimeTickSystem.Instance.CurTick;
+                    var isTimeout = result.deadlineTick < TimeSystem.CurTick;
                     
                     if (isTimeout)
                     {
                     }
 
-                    if (reply.status == WorkunitStatus.Success && !isTimeout)
+                    if (reply.status == ResultStatus.Success && !isTimeout)
                     {
-                        task.SuccessResults++;
-                        if (reply.result == WorkunitResult.Correct)
+                        workunit.SuccessResults++;
+                        if (reply.value == ResultValue.Correct)
                         {
-                            task.ValidResults++;
+                            workunit.ValidResults++;
                         }
                     }
                     else
                     {
-                        task.ErrorResults++;
+                        workunit.ErrorResults++;
                     }
 
-                    if (task.CurrentState == TaskModel.State.InProgress)
+                    if (workunit.CurrentState == WorkunitModel.State.InProgress)
                     {
                         bool isFinished = false;
-                        if (task.ValidResults >= task.MinQuorum)
+                        if (workunit.ValidResults >= workunit.MinQuorum)
                         {
-                            task.CurrentState = TaskModel.State.Valid;
+                            workunit.CurrentState = WorkunitModel.State.Valid;
                             isFinished = true;
                         }
-                        else if (task.ErrorResults >= task.Config.MaxErrorWorkunits ||
-                                 task.SuccessResults >= task.Config.MaxSuccessWorkunits ||
-                                 task.Workunits.Count >= task.Config.MaxCreatedWorkunits)
+                        else if (workunit.ErrorResults >= workunit.Config.MaxErrorResults ||
+                                 workunit.SuccessResults >= workunit.Config.MaxSuccessResults ||
+                                 workunit.Results.Count >= workunit.Config.MaxCreatedResults)
                         {
-                            task.CurrentState = TaskModel.State.Error;
+                            workunit.CurrentState = WorkunitModel.State.Error;
                             isFinished = true;
                         }
 
                         if (isFinished)
                         {
-                            Debug.Log($"[{ActorName}] Task {task.Name} finished with state {task.CurrentState}. Enqueuing for assimilation.");
-                            _assimilationQueue.Enqueue(task);
+                            Debug.Log($"[{ActorName}] Workunit {workunit.Name} finished with state {workunit.CurrentState}. Enqueuing for assimilation.");
+                            _assimilationQueue.Enqueue(workunit);
                         }
-                        else if(isTimeout || reply.status == WorkunitStatus.Fail)
+                        else if(isTimeout || reply.status == ResultStatus.Fail)
                         {
                            
-                            _errorWorkQueue.Enqueue(workunit);
+                            _errorResultsQueue.Enqueue(result);
                         }
                     }
-                    else if (task.CurrentState == TaskModel.State.Valid && reply.status == WorkunitStatus.Success && reply.result == WorkunitResult.Correct)
+                    else if (workunit.CurrentState == WorkunitModel.State.Valid && reply.status == ResultStatus.Success && reply.value == ResultValue.Correct)
                     {
                     }
                 }
                 else
                 {
-                    // This is a late reply for an already assimilated task.
+                    // This is a late reply for an already assimilated workunit.
                 }
             }
             else
@@ -295,17 +296,17 @@ public class ProjectModel : BaseActor, IProjectStats
         {
             if (_assimilationQueue.Count > 0)
             {
-                var taskToAssimilate = _assimilationQueue.Dequeue();
-                Debug.Log($"[{ActorName}] Assimilating task {taskToAssimilate.Name}. Firing OnWorkunitCompleted event.");
+                var workunitToAssimilate = _assimilationQueue.Dequeue();
+                Debug.Log($"[{ActorName}] Assimilating workunit {workunitToAssimilate.Name}. Firing OnWorkunitCompleted event.");
 
               
-                if (taskToAssimilate.CurrentState == TaskModel.State.Valid)
+                if (workunitToAssimilate.CurrentState == WorkunitModel.State.Valid)
                 {
                 }
                 else
                 {
                 }
-                _taskDatabase.Remove(taskToAssimilate.Name);
+                _workunitDatabase.Remove(workunitToAssimilate.Name);
                 OnWorkunitCompleted?.Invoke();
             }
             

@@ -5,6 +5,7 @@ using UnityEngine;
 public class GridUtilityWriter : IFileWriter
 {
     private readonly string _filePath;
+    private TimeTickSystem TimeSystem => Container.Instance.TimeSystem;
 
     public GridUtilityWriter(string filePath)
     {
@@ -23,7 +24,7 @@ public class GridUtilityWriter : IFileWriter
             using (StreamWriter file = new StreamWriter(_filePath, true))
             {
                 float gridUtil = data.OnlinePower > 0 ? (data.OnlinePower - data.IdlePower) / data.OnlinePower : 0;
-                int timestamp = TimeTickSystem.Instance.CurTick;
+                int timestamp = TimeSystem.CurTick;
                 file.WriteLine($"{timestamp.ToCsv()},{gridUtil.ToCsv()}");
             }
         }

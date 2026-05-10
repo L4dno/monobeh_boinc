@@ -13,10 +13,10 @@ public class ClientProject
     public double WallCpuTime = 0;
     public double Shortfall = 0;
 
-    public Queue<WorkunitData> AvailableTasks = new Queue<WorkunitData>();
-    public Queue<WorkunitData> ReadyToExecuteTasks = new Queue<WorkunitData>();
-    public Queue<ClientReplyData> CompletedTasks = new Queue<ClientReplyData>();
-    public List<WorkunitData> InProgressTasks = new List<WorkunitData>();
+    public Queue<ResultData> AvailableResults = new Queue<ResultData>();
+    public Queue<ResultData> ReadyToExecuteResults = new Queue<ResultData>();
+    public Queue<ClientReplyData> CompletedResults = new Queue<ClientReplyData>();
+    public List<ResultData> InProgressResults = new List<ResultData>();
 
     public ClientProject(ProjectConfig config)
     {

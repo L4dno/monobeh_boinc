@@ -3,15 +3,15 @@ using System.Linq;
 
 public class ServerReplyData : IMessage
 {
-    public readonly List<WorkunitData> workunits;
+    public readonly List<ResultData> results;
 
-    public ServerReplyData(List<WorkunitData> workunits)
+    public ServerReplyData(List<ResultData> results)
     {
-        this.workunits = workunits;
+        this.results = results;
     }
 
     public float GetByteSize()
     {
-        return workunits.Where(workunit => workunit != null).Sum(workunit => workunit.inputByteSize);
+        return results.Where(result => result != null).Sum(result => result.inputByteSize);
     }
 }

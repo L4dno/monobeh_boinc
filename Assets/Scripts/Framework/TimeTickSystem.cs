@@ -3,21 +3,11 @@ using System;
 
 public class TimeTickSystem : MonoBehaviour
 {
-    public static TimeTickSystem Instance { get; private set; }
-    public static event Action<int> OnTick;
+    public event Action<int> OnTick;
     private const float TICK_DURATION = 0.0002f; // ms
     public int CurTick {get; private set;} = 0;
     private float _tickTimer = 0;
 
-    private void Awake()
-    {
-        if (Instance != null && Instance != this)
-        {
-            Destroy(gameObject);
-            return;
-        }
-        Instance = this;
-    }
     private void Update()
     {
         _tickTimer += Time.deltaTime;
@@ -31,11 +21,4 @@ public class TimeTickSystem : MonoBehaviour
         }
     }
 
-    private void OnDestroy()
-    {
-        if (Instance == this)
-        {
-            OnTick = null;
-        }
-    }
 }

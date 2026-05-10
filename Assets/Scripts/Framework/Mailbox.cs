@@ -5,10 +5,11 @@ using System.Collections.Generic;
 public  class MailBox
 {
     private readonly Queue<IMessage> _messageQueue = new Queue<IMessage>();
+    private SimulationManager SimManager => Container.Instance.SimManager;
 
     public IEnumerator Put(IMessage message)
     {
-        var link = SimulationManager.Instance.Link;
+        var link = SimManager.Link;
         var ticksToWait = (int)Mathf.Ceil(link.Latency + message.GetByteSize() / link.Bandwidth);
 
         yield return new WaitForTicks(ticksToWait);

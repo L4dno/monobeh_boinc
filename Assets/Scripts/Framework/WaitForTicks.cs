@@ -6,17 +6,18 @@ using UnityEngine;
 public class WaitForTicks : CustomYieldInstruction
 {
     private int _targetTick;
+    private TimeTickSystem TimeSystem => Container.Instance.TimeSystem;
 
     public override bool keepWaiting
     {
         get
         {
-            return TimeTickSystem.Instance.CurTick < _targetTick;
+            return TimeSystem.CurTick < _targetTick;
         }
     }
 
     public WaitForTicks(int ticksToWait = 1)
     {
-        _targetTick = TimeTickSystem.Instance.CurTick + ticksToWait;
+        _targetTick = TimeSystem.CurTick + ticksToWait;
     }
 }

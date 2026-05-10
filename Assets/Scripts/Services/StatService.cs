@@ -9,7 +9,7 @@ public class StatService : IStatService
         {
             OnlinePower = data.OnlinePower,
             IdlePower = data.IdlePower,
-            UnfinishedTasks = data.UnfinishedTasks
+            UnfinishedWorkunits = data.UnfinishedWorkunits
         };
     }
 
@@ -48,11 +48,11 @@ public class StatService : IStatService
 
     private void OnWorkunitCompleted()
     {
-        data.UnfinishedTasks -= 1;
+        data.UnfinishedWorkunits -= 1;
     }
 
     private void OnWorkunitCreated()
     {
-        data.UnfinishedTasks += 1;
+        data.UnfinishedWorkunits += 1;
     }
 }

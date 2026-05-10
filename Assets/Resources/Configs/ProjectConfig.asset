@@ -15,7 +15,7 @@ MonoBehaviour:
   ProjectName: ATLAS@home
   Priority: 1
   ProjectId: 0
-  TaskConfigs:
+  WorkunitConfigs:
   - {fileID: 11400000, guid: 2e78620378879c24397b5c5f11d30e6b, type: 2}
   - {fileID: 11400000, guid: 7ddc720b071da8d49ae23de9a5d7e782, type: 2}
   - {fileID: 11400000, guid: 875d6b9580d249c4f95331710a671adc, type: 2}

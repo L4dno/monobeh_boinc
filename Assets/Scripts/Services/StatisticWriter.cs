@@ -11,7 +11,7 @@ public class StatisticWriter : IStatSaver
     const string GRID_FILE = "grid.csv";
 
     // получает зависимости внешне тк не монобех
-    public StatisticWriter(IConfigProvider configProvider, Coroutines coroutines, IStatService statService)
+    public StatisticWriter(IConfigProvider configProvider, IStatService statService)
     {
         _statService = statService;
         string outputDir = CreateStatisticsDirectory(configProvider.SimConfig);

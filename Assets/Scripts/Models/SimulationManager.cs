@@ -11,20 +11,20 @@ using System.ComponentModel;
 
 public class SimulationManager : MonoBehaviour
 {
-    // запуск дампа статистики надо вынести в энтри поинт
+
     private const int StatisticsDumpInterval = 3600;
     private IStatSaver _statisticWriter;
-
+    private TimeTickSystem _timeSystem;
     private SimConfig _config;
-
-    // мне надо передавать ссылку на себя во все хранящиеся внутри окружения акторы?
-    public static SimulationManager Instance {get; private set;}
 
     public Dictionary<string, BaseActor> Actors { get; private set; }
     private List<HostModel> hosts;
     public LinkModel Link {get; private set;} 
+    public float GridTotalPower {get; private set;}
 
-    
+        // надо сделать зависимым от эпизода
+    private int _maxSimulationTime;
+    public int MaxSimulationTime => _maxSimulationTime;
     
     public void RegisterActor(BaseActor actor)
     {
@@ -38,46 +38,6 @@ public class SimulationManager : MonoBehaviour
         }
     }
 
-    // разрешает зависимости внутренне тк монобех
-    // все перенесем в энтри поинт
-    private void Start()
-    {
-        var configProvider = Container.Instance.ConfigProvider;
-        _config = configProvider.SimConfig;
-
-        Actors = new Dictionary<string, BaseActor>();
-        hosts = new List<HostModel>();
-
-        TimeTickSystem.OnTick += Tick;
-
-        RandomUtils.SetSeed(_config.DeterministicSeed);
-        // впоследствии здесь надо будет заменить на относительное время
-        _maxSimulationTime = _config.SimLength * 3600;
-        CreatePlatform();
-        CreateDeployment();
-
-        // теперь в менеджере будет 1 почасовая корутина
-        // которая вызывает дамп статов у стат сейвера
-        // где надо выводить последний раз и закрывать файл??
-        // там же где и создается файлы
-
-        
-        _statisticWriter = Container.Instance.StatSaver;
-        StartCoroutine(DumpStatisticsLoop());
-    
-        // start all actors main loop coroutine
-        foreach (var actor in Actors.Values)
-        {
-            StartCoroutine(actor.MainLoop());
-        }
-        
-    }
-
-    // надо сделать зависимым от эпизода
-    private int _maxSimulationTime;
-    public int MaxSimulationTime => _maxSimulationTime;
-
-    // это вынесем
     private IEnumerator DumpStatisticsLoop()
     {
         _statisticWriter.Dump();
@@ -88,16 +48,38 @@ public class SimulationManager : MonoBehaviour
         }
     }
 
-    private void Tick(int curTick)
+    // все перенесем в энтри поинт
+    public void Initialize()
     {
-        if (curTick == _maxSimulationTime)
-            {
-                // print statistics
-                StopAllCoroutines();
-                _statisticWriter.Dump();
-                QuitGame();
-            }
+        _timeSystem = Container.Instance.TimeSystem;
+        var configProvider = Container.Instance.ConfigProvider;
+        _config = configProvider.SimConfig;
+
+        Actors = new Dictionary<string, BaseActor>();
+        hosts = new List<HostModel>();
+        _statisticWriter = Container.Instance.StatSaver;
+
+        
+        // впоследствии здесь надо будет заменить на относительное время
+        _maxSimulationTime = _config.SimLength * 3600;
+        CreatePlatform();
+        CreateDeployment();
+        
     }
+
+    public IEnumerator StartSimulation()
+    {
+        foreach (var actor in Actors.Values)
+        {
+            StartCoroutine(actor.MainLoop());
+        }
+        StartCoroutine(DumpStatisticsLoop());
+        yield return new WaitForTicks(MaxSimulationTime);
+        _statisticWriter.Dump();
+        StopAllCoroutines();
+    }
+
+
 
     void CreatePlatform()
     {
@@ -113,6 +95,7 @@ public class SimulationManager : MonoBehaviour
             hosts.Add(new HostModel(_config.ProjectConfig.ServerPowerGflops, hostId));
         }
         
+        GridTotalPower = 0;
         for (int i = 0; i < _config.GroupConfig.NumberOfClients; i++, hostId++)
         {
             float power = RandomUtils.GetDistribution(
@@ -120,6 +103,7 @@ public class SimulationManager : MonoBehaviour
                  _config.GroupConfig.RandomConfig.PowerA, 
                  _config.GroupConfig.RandomConfig.PowerB);
             power = Mathf.Clamp(power, _config.GroupConfig.MinSpeed, _config.GroupConfig.MaxSpeed);
+            GridTotalPower += power;
             // здесь отправляем событие для подсчета всей мощности грида
             hosts.Add(new HostModel(power, hostId));
         }
@@ -140,27 +124,4 @@ public class SimulationManager : MonoBehaviour
         }
     }
 
-    void Awake()
-    {
-
-        if (Instance == null)  
-        {        
-            Instance = this;  
-        }    
-        else  
-        {  
-            Destroy(gameObject);
-            return;
-        }
-    }
-
-    // это тоже убрать
-    private void QuitGame()
-    {
-        #if UNITY_EDITOR
-            EditorApplication.isPlaying = false;
-        #else
-            Application.Quit();
-        #endif
-    }
 }

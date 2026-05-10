@@ -62,74 +62,86 @@ int main(int argc, char *argv[]){
 	for(i=0; i<n_projects; i++){
 		fprintf(fd, "   <process host=\"b%s\" function=\"init_database\"> ", argv[index]);
 		fprintf(fd, "\n");	
-		fprintf(fd, "           <argument value=\"%s\"/> ", argv[index++]);	// Numero del proyecto
+		int32_t project_number = atoi(argv[index++]);
+		fprintf(fd, "           <argument value=\"%d\"/> ", project_number);	// Numero del proyecto
 		fprintf(fd, "\n");
 		fprintf(fd, "           <argument value=\"%s\"/> ", argv[index++]);	// Nombre de proyecto
 		fprintf(fd, "\n");	
-		fprintf(fd, "           <argument value=\"%s\"/> ", argv[index++]);	// Tamanyo de respuesta - 64 KB
-		fprintf(fd, "\n");
-       		fprintf(fd, "           <argument value=\"%s\"/> ", argv[index++]);	// Duracion de workunit (en flops)
-		fprintf(fd, "\n");
-		fprintf(fd, "           <argument value=\"%s\"/> ", argv[index++]);	// Percentage of input files generated locally
-		fprintf(fd, "\n");
-		fprintf(fd, "           <argument value=\"%s\"/> ", argv[index++]);	// Percentage of times a client must download new input files (they can't use previous ones)
-		fprintf(fd, "\n");
-		fprintf(fd, "           <argument value=\"%s\"/> ", argv[index++]);	// Average workunits per input files
-		fprintf(fd, "\n");
-		fprintf(fd, "           <argument value=\"%s\"/> ", argv[index++]);	// Quorum
-		fprintf(fd, "\n");
-		fprintf(fd, "           <argument value=\"%s\"/> ", argv[index++]);	// target_nresults
-		fprintf(fd, "\n");
-		fprintf(fd, "           <argument value=\"%s\"/> ", argv[index++]);	// max_error_results
-		fprintf(fd, "\n");
-       		fprintf(fd, "           <argument value=\"%s\"/> ", argv[index++]);	// max_total_results
-		fprintf(fd, "\n");
-		fprintf(fd, "           <argument value=\"%s\"/> ", argv[index++]);	// max_success_results
-		fprintf(fd, "\n");
-		fprintf(fd, "           <argument value=\"%s\"/> ", argv[index++]);	// Deadline de workunit
-		fprintf(fd, "\n");	
-		fprintf(fd, "           <argument value=\"%s\"/> ", argv[index++]);	// Success percentage
-		fprintf(fd, "\n");	
-		fprintf(fd, "           <argument value=\"%s\"/> ", argv[index++]);	// Canonical percentage
-		fprintf(fd, "\n");		
-		fprintf(fd, "           <argument value=\"%s\"/> ", argv[index++]);	// Tamanyo de workunit - 360 KB
-		fprintf(fd, "\n");
 		fprintf(fd, "           <argument value=\"%s\"/> ", argv[index++]);	// Disk speed
 		fprintf(fd, "\n");
-		fprintf(fd, "           <argument value=\"%s\"/> ", argv[index++]);	// Number of data servers
+		int32_t scheduling_servers = atoi(argv[index++]);
+		int32_t data_servers = atoi(argv[index++]);
+		fprintf(fd, "           <argument value=\"%d\"/> ", data_servers);	// Number of data servers
 		fprintf(fd, "\n");
-		fprintf(fd, "           <argument value=\"%s\"/> ", argv[index++]);	// Output files storage
+		fprintf(fd, "           <argument value=\"%s\"/> ", argv[index++]);	// Input files replication
 		fprintf(fd, "\n");
-		fprintf(fd, "           <argument value=\"%s\"/> ", argv[index++]);	// Files replication in data servers
+		fprintf(fd, "           <argument value=\"%s\"/> ", argv[index++]);	// Tail stage active
 		fprintf(fd, "\n");
-
+		fprintf(fd, "           <argument value=\"%s\"/> ", argv[index++]);	// Utilization safety
+		fprintf(fd, "\n");
+		int applications_num = atoi(argv[index++]);
+		fprintf(fd, "           <argument value=\"%d\"/> ", applications_num);	// Applications number
+		fprintf(fd, "\n");
+		for (int j = 0; j < applications_num; j++) {
+			fprintf(fd, "           <argument value=\"%s\"/> ", argv[index++]);	// Application percentage
+			fprintf(fd, "\n");
+			fprintf(fd, "           <argument value=\"%s\"/> ", argv[index++]);	// Tamanyo de respuesta - 64 KB
+			fprintf(fd, "\n");
+				fprintf(fd, "           <argument value=\"%s\"/> ", argv[index++]);	// Duracion de workunit (en flops)
+			fprintf(fd, "\n");
+				fprintf(fd, "           <argument value=\"%s\"/> ", argv[index++]);	// Percentage of input files generated locally
+			fprintf(fd, "\n");
+				fprintf(fd, "           <argument value=\"%s\"/> ", argv[index++]);	// Percentage of times a client must download new input files (they can't use previous ones)
+			fprintf(fd, "\n");
+			fprintf(fd, "           <argument value=\"%s\"/> ", argv[index++]);	// Quorum
+			fprintf(fd, "\n");
+			fprintf(fd, "           <argument value=\"%s\"/> ", argv[index++]);	// target_nresults
+			fprintf(fd, "\n");
+			fprintf(fd, "           <argument value=\"%s\"/> ", argv[index++]);	// max_error_results
+			fprintf(fd, "\n");
+				fprintf(fd, "           <argument value=\"%s\"/> ", argv[index++]);	// max_total_results
+			fprintf(fd, "\n");
+			fprintf(fd, "           <argument value=\"%s\"/> ", argv[index++]);	// max_success_results
+			fprintf(fd, "\n");
+			fprintf(fd, "           <argument value=\"%s\"/> ", argv[index++]);	// Deadline de workunit
+			fprintf(fd, "\n");	
+			fprintf(fd, "           <argument value=\"%s\"/> ", argv[index++]);	// Success percentage
+			fprintf(fd, "\n");	
+			fprintf(fd, "           <argument value=\"%s\"/> ", argv[index++]);	// Canonical percentage
+			fprintf(fd, "\n");		
+			fprintf(fd, "           <argument value=\"%s\"/> ", argv[index++]);	// Tamanyo de workunit - 360 KB
+			fprintf(fd, "\n");
+			fprintf(fd, "           <argument value=\"%s\"/> ", argv[index++]);	// Number of workunits generated in one period
+			fprintf(fd, "\n");
+			fprintf(fd, "           <argument value=\"%s\"/> ", argv[index++]);	// Sleep time between periods
+			fprintf(fd, "\n");
+		}
 		fprintf(fd, "   </process> ");
 		fprintf(fd, "\n");
-		index-=21;	
-		fprintf(fd, "   <process host=\"b%s\" function=\"work_generator\"> ", argv[index]);
+		fprintf(fd, "   <process host=\"b%d\" function=\"work_generator\"> ", project_number);
 		fprintf(fd, "\n");	
-		fprintf(fd, "           <argument value=\"%s\"/> ", argv[index]);	// Numero del proyecto
+		fprintf(fd, "           <argument value=\"%d\"/> ", project_number);	// Numero del proyecto
 		fprintf(fd, "\n");
 		fprintf(fd, "   </process> ");
 		fprintf(fd, "\n");
-		fprintf(fd, "   <process host=\"b%s\" function=\"validator\" >", argv[index]);
+		fprintf(fd, "   <process host=\"b%d\" function=\"validator\" >", project_number);
 		fprintf(fd, "\n");	
-		fprintf(fd, "           <argument value=\"%s\"/> ", argv[index]);	// Numero del proyecto
+		fprintf(fd, "           <argument value=\"%d\"/> ", project_number);	// Numero del proyecto
 		fprintf(fd, "\n");
 		fprintf(fd, "   </process> ");
 		fprintf(fd, "\n");
-		fprintf(fd, "   <process host=\"b%s\" function=\"assimilator\" >", argv[index]);
+		fprintf(fd, "   <process host=\"b%d\" function=\"assimilator\" >", project_number);
 		fprintf(fd, "\n");
-		fprintf(fd, "           <argument value=\"%s\"/> ", argv[index]);	// Numero del proyecto
+		fprintf(fd, "           <argument value=\"%d\"/> ", project_number);	// Numero del proyecto
 		fprintf(fd, "\n");	
 		fprintf(fd, "   </process> ");
 		fprintf(fd, "\n");
 		
 		// Scheduling servers
-		for(j=0; j<atoi(argv[index+21]); j++){	
+		for(j=0; j<scheduling_servers; j++){	
 			fprintf(fd, "   <process host=\"s%d%d\" function=\"scheduling_server_requests\"> ", i+1, j);
 			fprintf(fd, "\n");
-        		fprintf(fd, "           <argument value=\"%s\"/> ", argv[index]);			// Numero del proyecto
+        		fprintf(fd, "           <argument value=\"%d\"/> ", project_number);			// Numero del proyecto
 			fprintf(fd, "\n");
 			fprintf(fd, "           <argument value=\"%d\"/> ", scheduling_server_number);		// Numero del servidor
 			fprintf(fd, "\n");
@@ -138,7 +150,7 @@ int main(int argc, char *argv[]){
 
 			fprintf(fd, "   <process host=\"s%d%d\" function=\"scheduling_server_dispatcher\"> ", i+1, j);
 			fprintf(fd, "\n");
-        		fprintf(fd, "           <argument value=\"%s\"/> ", argv[index]);			// Numero del proyecto
+        		fprintf(fd, "           <argument value=\"%d\"/> ", project_number);			// Numero del proyecto
 			fprintf(fd, "\n");	
 			fprintf(fd, "           <argument value=\"%d\"/> ", scheduling_server_number++);	// Numero del servidor
 			fprintf(fd, "\n");
@@ -147,7 +159,7 @@ int main(int argc, char *argv[]){
 		}
 
 		// Data servers
-		for(j=0; j<atoi(argv[index+17]); j++, l++){
+		for(j=0; j<data_servers; j++, l++){
 			fprintf(fd, "   <process host=\"d%d%d\" function=\"data_server_requests\"> ", i+1, j);		
 			fprintf(fd, "\n");
 			fprintf(fd, "           <argument value=\"%d\"/> ", l);
@@ -159,21 +171,24 @@ int main(int argc, char *argv[]){
 			fprintf(fd, "\n");
 		        fprintf(fd, "           <argument value=\"%d\"/> ", l);
 			fprintf(fd, "\n");
-		        fprintf(fd, "           <argument value=\"%s\"/> ", argv[index]);
+		        fprintf(fd, "           <argument value=\"%d\"/> ", project_number);
 			fprintf(fd, "\n");
 		        fprintf(fd, "   </process> ");
 			fprintf(fd, "\n");
-		}
-
-
-
-		index+=23;		
+		}	
 	}
 
 	n_clusters = atoi(argv[index++]);
 	
 	/* PRINT CLIENTS*/
 	for(i=0; i<n_clusters;i++){
+		int n_clients = atoi(argv[index++]);
+		int att_projs = atoi(argv[index++]);
+		char* traces_file = bprintf("../%s", argv[index++]);
+		FILE *fd_traces = fopen(traces_file, "r");
+		free(traces_file);
+
+		// READ LINE
 		for(j=0; j<n_clients; j++){
 			if(j==0){
 				fprintf(fd, "   <process host=\"c%d%d\" function=\"client\"> ", i+1, j);
@@ -196,23 +211,21 @@ int main(int argc, char *argv[]){
 				fprintf(fd, "\n");
         	        	fprintf(fd, "        <argument value=\"%s\"/>  ", argv[index++]); // <!-- B argument -->
 				fprintf(fd, "\n");
-        	        	fprintf(fd, "        <argument value=\"%s\"/>  ", argv[index++]); // <!-- Db. random distribution -->
-				fprintf(fd, "\n");
-        	        	fprintf(fd, "        <argument value=\"%s\"/>  ", argv[index++]); // <!-- A argument -->
-				fprintf(fd, "\n");
-        	        	fprintf(fd, "        <argument value=\"%s\"/>  ", argv[index++]); // <!-- B argument -->
-				fprintf(fd, "\n");
-				fprintf(fd, "        <argument value=\"%s\"/>  ", argv[index++]); // <!-- Av. random distribution -->
+        	        	fprintf(fd, "        <argument value=\"%s\"/>  ", argv[index++]); // <!-- Av. random distribution -->
 				fprintf(fd, "\n");
         	       		fprintf(fd, "        <argument value=\"%s\"/>  ", argv[index++]); // <!-- A argument -->
 				fprintf(fd, "\n");
         	 	       	fprintf(fd, "        <argument value=\"%s\"/>  ", argv[index++]); // <!-- B argument -->
 				fprintf(fd, "\n");
-        	     		fprintf(fd, "        <argument value=\"%s\"/>  ", argv[index++]); // <!-- Nav. random distribution -->
+        	        fprintf(fd, "        <argument value=\"%s\"/>  ", argv[index++]); // <!-- Nav. random distribution -->
 				fprintf(fd, "\n");
         	        	fprintf(fd, "        <argument value=\"%s\"/>  ", argv[index++]); // <!-- A argument -->
 				fprintf(fd, "\n");
         	        	fprintf(fd, "        <argument value=\"%s\"/>  ", argv[index++]); // <!-- B argument -->
+				fprintf(fd, "\n");
+        	        	fprintf(fd, "        <argument value=\"%s\"/>  ", argv[index++]); // <!-- Tail mean speed override -->
+				fprintf(fd, "\n");
+        	        	fprintf(fd, "        <argument value=\"%s\"/>  ", argv[index++]); // <!-- Tail availability override -->
 				fprintf(fd, "\n");
         	        	if(fd_traces != NULL){
 					fprintf(fd, "        <argument value=\"%f\"/>  ", getrow(fd_traces)); 		// <!-- Host power -->		
@@ -244,6 +257,7 @@ int main(int argc, char *argv[]){
 
 		}
 		if(fd_traces !=  NULL) fclose(fd_traces);	
+		printf("%d ", n_clients);
 	}
 
 	/* END */

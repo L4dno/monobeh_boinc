@@ -14,9 +14,9 @@ public class ProjectConfigData
     public string ProjectName;
     public float Priority;
     public int ProjectId;
-    public TaskConfigData TaskConfig;
+    public WorkunitConfigData WorkunitConfig;
     public float ServerPowerGflops;
-    public int InitialTaskCount;
+    public int InitialWorkunitCount;
     public int SuccessPercentage;
     public int CanonicalPercentage;
 }
@@ -52,17 +52,17 @@ public class RandomConfigData
     public float CpuNonavailabilityB;
 }
 
-public class TaskConfigData
+public class WorkunitConfigData
 {
-    public Distribution TaskPowerDistri;
-    public float MinTaskGflops;
-    public float MaxTaskGflops;
+    public Distribution WorkunitPowerDistri;
+    public float MinWorkunitGflops;
+    public float MaxWorkunitGflops;
     public float InputFileSize;
     public float OutputFileSize;
-    public int InitialCreatedWorkunits;
-    public int MaxCreatedWorkunits;
-    public int MaxErrorWorkunits;
-    public int MaxSuccessWorkunits;
+    public int InitialCreatedResults;
+    public int MaxCreatedResults;
+    public int MaxErrorResults;
+    public int MaxSuccessResults;
     public int DelayBound;
     public int MinQuorum;
 }

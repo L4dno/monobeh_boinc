@@ -5,6 +5,7 @@ using UnityEngine;
 public class WorkunitsWriter : IFileWriter
 {
     private readonly string _filePath;
+    private TimeTickSystem TimeSystem => Container.Instance.TimeSystem;
 
     public WorkunitsWriter(string filePath)
     {
@@ -12,7 +13,7 @@ public class WorkunitsWriter : IFileWriter
 
         using (StreamWriter file = new StreamWriter(_filePath, false))
         {
-            file.WriteLine("timestamp,tasks_inprogress");
+            file.WriteLine("timestamp,workunits_inprogress");
         }
     }
 
@@ -22,8 +23,8 @@ public class WorkunitsWriter : IFileWriter
         {
             using (StreamWriter file = new StreamWriter(_filePath, true))
             {
-                int timestamp = TimeTickSystem.Instance.CurTick;
-                file.WriteLine($"{timestamp.ToCsv()},{data.UnfinishedTasks.ToCsv()}");
+                int timestamp = TimeSystem.CurTick;
+                file.WriteLine($"{timestamp.ToCsv()},{data.UnfinishedWorkunits.ToCsv()}");
             }
         }
         catch (Exception ex)
