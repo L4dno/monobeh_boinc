@@ -1,10 +1,10 @@
-public enum ResultStatus : byte
+public enum ResultStatus
 {
     Fail,
     Success
 }
 
-public enum ResultValue : byte
+public enum ResultValue
 {
     Correct,
     Incorrect
@@ -19,9 +19,9 @@ public class ClientReplyData : IMessage
     public readonly string WorkunitName;
     public readonly int ResultNumber;
     public readonly int credits;
-    public readonly float fileSize;
+    public readonly float fileSizeMb;
 
-    public ClientReplyData(string clientName, ResultStatus status, ResultValue value, string workunitName, int resultNumber, int credits, float fileSize)
+    public ClientReplyData(string clientName, ResultStatus status, ResultValue value, string workunitName, int resultNumber, int credits, float fileSizeMb)
     {
         this.ClientName = clientName;
         this.status = status;
@@ -29,11 +29,11 @@ public class ClientReplyData : IMessage
         this.WorkunitName = workunitName;
         this.ResultNumber = resultNumber;
         this.credits = credits;
-        this.fileSize = fileSize;
+        this.fileSizeMb = fileSizeMb;
     }
 
-    public float GetByteSize()
+    public float GetSizeInMegabytes()
     {
-        return fileSize;
+        return 0.01f + fileSizeMb;
     }
 }

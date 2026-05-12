@@ -10,16 +10,19 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 022972ea16dcb444b8a073aaa918a410, type: 3}
-  m_Name: WorkunitConfig4
+  m_Name: ApplicationConfig
   m_EditorClassIdentifier: 
-  WorkunitPowerDistri: 3
-  MinWorkunitGflops: 100000
-  MaxWorkunitGflops: 200000
-  InputFileSize: 54.6
-  OutputFileSize: 100
+  ApplicationPercentage: 50
+  TaskGflops: 308430
+  InputFileSize: 0.01
+  OutputFileSize: 1
   InitialCreatedResults: 2
-  DelayBound: 259200
+  WorkunitsNumber: 1e+11
+  SleepTime: 0
+  DelayBound: 1000000
   MinQuorum: 2
-  MaxCreatedResults: 4
-  MaxErrorResults: 2
-  MaxSuccessResults: 3
+  MaxCreatedResults: 20
+  MaxErrorResults: 7
+  MaxSuccessResults: 20
+  SuccessPercentage: 90
+  CanonicalPercentage: 90

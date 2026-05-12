@@ -14,9 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   NumberOfClients: 1000
   RandomConfig: {fileID: 11400000, guid: f98141a8d1462bc4cba7165c8b751a5a, type: 2}
-  MaxSpeed: 117.71
-  MinSpeed: 0.07
-  ConnectionInterval: 150
-  SchedulingInterval: 150
-  ServerLatency: 1
-  ServerBandwidth: 1.25
+  MaxSpeed: 337
+  MinSpeed: 3
+  ConnectionInterval: 1
+  SchedulingInterval: 3600
+  ServerLatency: 0.02
+  ServerBandwidth: 125
+  TailMeanSpeed: 53.651966
+  TailAvailabilityPercent: 55.3

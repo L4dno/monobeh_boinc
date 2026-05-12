@@ -12,18 +12,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1cb8cfeb1c2b3ec42a9329206484658f, type: 3}
   m_Name: RandomConfig
   m_EditorClassIdentifier: 
-  <HostPowerDistri>k__BackingField: 5
-  <PowerA>k__BackingField: 0.1667
-  <PowerB>k__BackingField: -1
-  <HostAvailabilityDistri>k__BackingField: 0
-  <HostAvailabilityA>k__BackingField: 0.393
-  <HostAvailabilityB>k__BackingField: 2.964
-  <HostNonavailabilityDistri>k__BackingField: 2
-  <HostNonavailabilityA>k__BackingField: 2.444
-  <HostNonavailabilityB>k__BackingField: -0.586
-  <CpuAvailabilityDistri>k__BackingField: 0
-  <CpuAvailabilityA>k__BackingField: 0.393
-  <CpuAvailabilityB>k__BackingField: 2.964
-  <CpuNonavailabilityDistri>k__BackingField: 2
-  <CpuNonavailabilityA>k__BackingField: 2.444
-  <CpuNonavailabilityB>k__BackingField: -0.586
+  HostPowerDistri: 5
+  PowerA: 0.017735
+  PowerB: -1
+  HostAvailabilityDistri: 0
+  HostAvailabilityA: 0.393
+  HostAvailabilityB: 2.964
+  HostNonavailabilityDistri: 2
+  HostNonavailabilityA: -0.586
+  HostNonavailabilityB: 2.844
+  CpuAvailabilityDistri: 0
+  CpuAvailabilityA: 0.393
+  CpuAvailabilityB: 2.964
+  CpuNonavailabilityDistri: 2
+  CpuNonavailabilityA: -0.586
+  CpuNonavailabilityB: 2.844

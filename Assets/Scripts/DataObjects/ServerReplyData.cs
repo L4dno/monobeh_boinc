@@ -1,17 +1,18 @@
 using System.Collections.Generic;
-using System.Linq;
 
 public class ServerReplyData : IMessage
 {
-    public readonly List<ResultData> results;
+    public readonly List<ClientTaskData> tasks;
+    public readonly float inputTransferSizeMb;
 
-    public ServerReplyData(List<ResultData> results)
+    public ServerReplyData(List<ClientTaskData> tasks, float inputTransferSizeMb)
     {
-        this.results = results;
+        this.tasks = tasks;
+        this.inputTransferSizeMb = inputTransferSizeMb;
     }
 
-    public float GetByteSize()
+    public float GetSizeInMegabytes()
     {
-        return results.Where(result => result != null).Sum(result => result.inputByteSize);
+        return 0.01f + inputTransferSizeMb;
     }
 }

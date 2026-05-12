@@ -8,15 +8,23 @@ public class ClientProject
     public string ProjectActorName { get; }
     public ProjectConfig Config { get; }
 
-    public double ShortTermDebt = 0;
-    public double LongTermDebt = 0;
-    public double WallCpuTime = 0;
-    public double Shortfall = 0;
+    public float ShortTermDebt = 0;
+    public float LongTermDebt = 0;
+    public float WallCpuTime = 0;
+    public float Shortfall = 0;
+    public bool On = true;
+    public bool ExecutorSuspended = true;
+    public ClientTaskData RunningTask = null;
+    public int TotalTasksChecked = 0;
+    public int TotalTasksExecuted = 0;
+    public int TotalTasksReceived = 0;
+    public int TotalTasksMissed = 0;
 
-    public Queue<ResultData> AvailableResults = new Queue<ResultData>();
-    public Queue<ResultData> ReadyToExecuteResults = new Queue<ResultData>();
-    public Queue<ClientReplyData> CompletedResults = new Queue<ClientReplyData>();
-    public List<ResultData> InProgressResults = new List<ResultData>();
+    public List<ClientTaskData> Tasks = new List<ClientTaskData>();
+    public List<ClientTaskData> RunList = new List<ClientTaskData>();
+    public List<ClientTaskData> SimTasks = new List<ClientTaskData>();
+    public Queue<ClientTaskData> ReadyTasks = new Queue<ClientTaskData>();
+    public Queue<ClientReplyData> CompletedTasks = new Queue<ClientReplyData>();
 
     public ClientProject(ProjectConfig config)
     {

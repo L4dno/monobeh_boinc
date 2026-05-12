@@ -34,3 +34,5 @@ CM.meta
 /SimulationOutput/*
 !/SimulationOutput/Analytics/
 !/SimulationOutput/Analytics/**
+Assets/Resources/Old/new_results
+Assets/Resources/Old/old_results

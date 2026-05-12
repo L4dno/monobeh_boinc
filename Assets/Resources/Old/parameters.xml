@@ -1,0 +1,89 @@
+<simulation_time>120</simulation_time>			 <!-- Simulation time in hours -->
+
+<!-- Server side -->
+<server_side>
+	<n_projects>1</n_projects>				<!-- Number of projects -->
+	<sproject>
+		<snumber>0</snumber>				<!-- Project number -->
+		<name>PROJECT1</name>				<!-- Project name -->
+		<nscheduling_servers>1</nscheduling_servers>	<!-- Number of scheduling servers -->
+		<ndata_servers>1</ndata_servers>		<!-- Number of data servers of the project -->
+		<server_pw>250000000000</server_pw>		<!-- Server power in FLOPS -->
+		<disk_bw>12000000000</disk_bw>			<!-- Disk speed in bytes/sec -->
+		<replication>2</replication>			<!-- Input files replication -->
+		<activate_tail_stage>1</activate_tail_stage>
+		<utilization_safety>0.7</utilization_safety>	<!-- Коэффициент потерь времени хостов на промежуточные штуки без вычислений; уменьшает полезный бюджет FLOPS для режима хвоста -->
+		<n_applications>2</n_applications>			<!-- Number of applications -->
+		<application>
+			<application_percentage>50<application_percentage>		<!-- Percentage of workunits belonging to this application -->
+			<ifgl_percentage>100<ifgl_percentage>		<!-- Percentage of input files generated locally -->
+			<ifcd_percentage>100<ifcd_percentage>		<!-- Percentage of times clients must download new input files (they can't use old input files) -->
+			<input_file_size>10000</input_file_size>	<!-- Input file size in bytes -->
+			<task_fpops>308430000000000</task_fpops>		<!-- Task duration in flops -->
+			<output_file_size>1000000</output_file_size>	<!-- Answer size in bytes -->
+			<min_quorum>2</min_quorum>			<!-- Number of times a workunit must be received in order to validate it-->
+			<target_nresults>2</target_nresults>			 <!-- Number of results to create initially -->
+			<max_error_results>7</max_error_results>	<!-- Max number of erroneous results -->
+			<max_total_results>20</max_total_results>	<!-- Max number of total results -->
+			<max_success_results>20</max_success_results>	<!-- Max number of success results -->
+			<delay_bound>1000000</delay_bound>		<!-- Task deadline -->	
+			<success_percentage>90</success_percentage>	<!-- Percentage of success results -->
+			<canonical_percentage>90</canonical_percentage> <!-- Percentage of success results that make up a consensus -->
+			<workunits_number>100000000000</workunits_number>
+			<sleep_time>0</sleep_time>
+		<application>
+		<application>
+			<application_percentage>50<application_percentage>		<!-- Percentage of workunits belonging to this application -->
+			<ifgl_percentage>100<ifgl_percentage>		<!-- Percentage of input files generated locally -->
+			<ifcd_percentage>100<ifcd_percentage>		<!-- Percentage of times clients must download new input files (they can't use old input files) -->
+			<input_file_size>10000</input_file_size>	<!-- Input file size in bytes -->
+			<task_fpops>908430000000000</task_fpops>		<!-- Task duration in flops -->
+			<output_file_size>1000000</output_file_size>	<!-- Answer size in bytes -->
+			<min_quorum>2</min_quorum>			<!-- Number of times a workunit must be received in order to validate it-->
+			<target_nresults>2</target_nresults>			 <!-- Number of results to create initially -->
+			<max_error_results>7</max_error_results>	<!-- Max number of erroneous results -->
+			<max_total_results>20</max_total_results>	<!-- Max number of total results -->
+			<max_success_results>20</max_success_results>	<!-- Max number of success results -->
+			<delay_bound>1000000</delay_bound>		<!-- Task deadline -->	
+			<success_percentage>95</success_percentage>	<!-- Percentage of success results -->
+			<canonical_percentage>95</canonical_percentage> <!-- Percentage of success results that make up a consensus -->
+			<workunits_number>100000000000</workunits_number>
+			<sleep_time>86400</sleep_time>
+		<application>
+	<sproject/>
+</server_side>
+
+<!-- Client side -->
+<client_side>
+	<n_groups>1</n_groups>					<!-- Number of groups -->
+	<group>
+		<n_clients>1000</n_clients>			 <!-- Number of clients of the cluster -->
+		<connection_interval>1</connection_interval>	<!-- Connection interval -->
+		<scheduling_interval>3600</scheduling_interval>	<!-- Scheduling interval -->
+		<gbw>1Gbps</gbw>				<!-- Cluster link bandwidth in bps -->
+		<glatency>10ms</glatency>			<!-- Cluster link latency -->
+		<traces_file>NULL</traces_file>			<!-- Host power traces file -->
+		<max_speed>337</max_speed>			<!-- Maximum host speed in GFlops -->
+		<min_speed>3</min_speed>			<!-- Minumum host speed in GFlops -->
+		<pv_distri>5</pv_distri>			<!-- Speed fit distribution [ran_weibull, ran_gamma, ran_lognormal, normal, hyperx, exponential] -->
+		<pa_param>0.017735</pa_param>			<!-- A -->
+		<pb_param>-1</pb_param>				<!-- B -->
+		<av_distri>0</av_distri>			<!-- Availability fit distribution [ran_weibull, ran_gamma, ran_lognormal, normal, hyperx, exponential] -->
+		<aa_param>0.393</aa_param>			<!-- A -->
+		<ab_param>2.964</ab_param>			<!-- B -->
+		<nv_distri>2</nv_distri>			<!-- Non-availability fit distribution [ran_weibull, ran_gamma, ran_lognormal, normal, hyperx, exponential] -->
+		<na_param>-0.586</na_param>			<!-- A -->
+		<nb_param>2.844</nb_param>			<!-- B -->
+		<tail_mean_speed>53.651965</tail_mean_speed>  <!-- mean host speed in gflops from general.txt -->
+		<tail_availability>55.3</tail_availability>  <!-- mean host availability percent from general.txt -->
+		<att_projs>1</att_projs>			<!-- Number of projects attached -->
+		<gproject>
+			<pnumber>0</pnumber>			<!-- Project number -->
+			<priority>1</priority>			<!-- Project priority -->
+			<lsbw>1Gbps</lsbw>			<!-- Link bandwidth (between group and scheduling servers) -->
+			<lslatency>20ms</lslatency>		<!-- Link latency (between group and scheduling servers) -->
+			<ldbw>1Gbps</ldbw>			<!-- Link bandwidth (between group and data servers) -->
+			<ldlatency>20ms</latency>		<!-- Link latency (between group and data servers) -->	
+		</gproject>			
+	</group>
+</client_side>

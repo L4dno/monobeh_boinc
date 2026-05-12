@@ -1,35 +1,26 @@
-using System;
 using System.IO;
-using UnityEngine;
 
-public class WorkunitsWriter : IFileWriter
+public class WorkunitsCreationWriter : IFileWriter
 {
     private readonly string _filePath;
-    private TimeTickSystem TimeSystem => Container.Instance.TimeSystem;
 
-    public WorkunitsWriter(string filePath)
+    public WorkunitsCreationWriter(string filePath)
     {
         _filePath = filePath;
-
-        using (StreamWriter file = new StreamWriter(_filePath, false))
-        {
-            file.WriteLine("timestamp,workunits_inprogress");
-        }
     }
 
     public void Dump(StatsData data)
     {
-        try
+        using (StreamWriter file = FileWriterExtension.OpenLegacyWriter(_filePath))
         {
-            using (StreamWriter file = new StreamWriter(_filePath, true))
+            for (int applicationIndex = 0; applicationIndex < data.CreationWorkunitTimestamps.Length; applicationIndex++)
             {
-                int timestamp = TimeSystem.CurTick;
-                file.WriteLine($"{timestamp.ToCsv()},{data.UnfinishedWorkunits.ToCsv()}");
+                var timestamps = data.CreationWorkunitTimestamps[applicationIndex];
+                for (int tick = 0; tick < data.SimulationDuration; tick++)
+                {
+                    file.WriteLine($"{applicationIndex.ToCsv()} {timestamps[tick].ToCsv()}");
+                }
             }
-        }
-        catch (Exception ex)
-        {
-            Debug.LogError($"Error writing statistics: {ex.Message}");
         }
     }
 }

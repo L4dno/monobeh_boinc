@@ -5,14 +5,15 @@ using System.Collections.Generic;
 public class WorkunitModel
 {
     public string Name { get; }
+    public int ApplicationIndex { get; }
+    public int CreatedTick { get; }
     public int DelayBound => _config.DelayBound;
     public int MinQuorum => _config.MinQuorum;
+    public int TotalResults => _resultsCreated;
 
-    public WorkunitConfig Config => _config;
-    private readonly WorkunitConfig _config;
+    public ApplicationConfig Config => _config;
+    private readonly ApplicationConfig _config;
 
-    private readonly float _workunitSizeGflops;
-    
     public List<ResultData> Results = new List<ResultData>();
     private int _resultsCreated = 0;
     
@@ -23,22 +24,24 @@ public class WorkunitModel
     public int ErrorResults = 0;
     public int SuccessResults = 0;
     public int ReceivedResults = 0;
+    public int SentResults = 0;
+    public int CurrentErrorResults = 0;
+    public int Credits = -1;
+    public bool QueuedForAssimilation = false;
 
 
-    public WorkunitModel(string name, WorkunitConfig config)
+    public WorkunitModel(string name, ApplicationConfig config)
+        : this(name, config, 0, 0)
+    {
+    }
+
+    public WorkunitModel(string name, ApplicationConfig config, int applicationIndex, int createdTick)
     {
         Name = name;
+        ApplicationIndex = applicationIndex;
+        CreatedTick = createdTick;
         _config = config;
         // normal gen of a size of a workunit
-
-        float mean = (_config.MinWorkunitGflops + _config.MaxWorkunitGflops) / 2f;
-        float stdDev = (_config.MaxWorkunitGflops - _config.MinWorkunitGflops) / 6f;
-
-        _workunitSizeGflops = Mathf.Clamp(
-            RandomUtils.GetDistribution(_config.WorkunitPowerDistri, mean, stdDev), 
-            _config.MinWorkunitGflops, 
-            _config.MaxWorkunitGflops);
-    
     }
 
     public bool CanCreateInitialResults() => _resultsCreated < _config.InitialCreatedResults;
@@ -46,16 +49,23 @@ public class WorkunitModel
 
     public ResultData CreateResult()
     {
+        return CreateResult(0);
+    }
+
+    public ResultData CreateResult(int createdTick)
+    {
         if (!CanCreateMoreResults()) return null;
 
         // init result with workunit power field
         var result = new ResultData(
             Name, 
             _resultsCreated,
-            _workunitSizeGflops,
+            ApplicationIndex,
+            _config.TaskGflops,
             _config.InputFileSize,
             _config.OutputFileSize,
-            0
+            createdTick,
+            createdTick + _config.DelayBound
         );
         Results.Add(result);
         _resultsCreated++;

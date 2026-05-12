@@ -14,7 +14,7 @@ public class RandomConfig : ScriptableObject
     [Tooltip("A parameter for speed distribution")]
     
     [FormerlySerializedAs("<PowerA>k__BackingField")]
-    public float PowerA  = 0.1667f;
+    public float PowerA  = 0.017735f;
 
     [Tooltip("B parameter for speed distribution")]
     
@@ -47,14 +47,14 @@ public class RandomConfig : ScriptableObject
         
 
         [FormerlySerializedAs("<HostNonavailabilityA>k__BackingField")]
-        public float HostNonavailabilityA  = 2.444f;
+        public float HostNonavailabilityA  = -0.586f;
 
         [Tooltip("B parameter for non-availability distribution")]
 
         
 
         [FormerlySerializedAs("<HostNonavailabilityB>k__BackingField")]
-        public float HostNonavailabilityB  = -0.586f;
+        public float HostNonavailabilityB  = 2.844f;
 
     [Header("CPU Availability")]
     [Tooltip("CPU availability fit distribution")]
@@ -81,10 +81,10 @@ public class RandomConfig : ScriptableObject
     [Tooltip("A parameter for Y-non-availability distribution")]
     
     [FormerlySerializedAs("<CpuNonavailabilityA>k__BackingField")]
-    public float CpuNonavailabilityA  = 2.444f;
+    public float CpuNonavailabilityA  = -0.586f;
 
     [Tooltip("B parameter for Y-non-availability distribution")]
     
     [FormerlySerializedAs("<CpuNonavailabilityB>k__BackingField")]
-    public float CpuNonavailabilityB  = -0.586f;
+    public float CpuNonavailabilityB  = 2.844f;
 }

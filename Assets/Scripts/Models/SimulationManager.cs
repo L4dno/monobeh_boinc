@@ -12,19 +12,47 @@ using System.ComponentModel;
 public class SimulationManager : MonoBehaviour
 {
 
-    private const int StatisticsDumpInterval = 3600;
     private IStatSaver _statisticWriter;
     private TimeTickSystem _timeSystem;
     private SimConfig _config;
 
     public Dictionary<string, BaseActor> Actors { get; private set; }
     private List<HostModel> hosts;
+    private readonly List<Coroutine> _simulationCoroutines = new List<Coroutine>();
     public LinkModel Link {get; private set;} 
     public float GridTotalPower {get; private set;}
 
         // надо сделать зависимым от эпизода
     private int _maxSimulationTime;
     public int MaxSimulationTime => _maxSimulationTime;
+
+    public Coroutine StartSimulationCoroutine(IEnumerator routine)
+    {
+        var coroutine = StartCoroutine(routine);
+        _simulationCoroutines.Add(coroutine);
+        return coroutine;
+    }
+
+    public void StopSimulationCoroutine(Coroutine coroutine)
+    {
+        if (coroutine == null)
+        {
+            return;
+        }
+
+        StopCoroutine(coroutine);
+        _simulationCoroutines.Remove(coroutine);
+    }
+
+    public void ForgetSimulationCoroutine(Coroutine coroutine)
+    {
+        if (coroutine == null)
+        {
+            return;
+        }
+
+        _simulationCoroutines.Remove(coroutine);
+    }
     
     public void RegisterActor(BaseActor actor)
     {
@@ -35,16 +63,6 @@ public class SimulationManager : MonoBehaviour
         else
         {
             Debug.LogError($"Actor with name {actor.ActorName} already registered.");
-        }
-    }
-
-    private IEnumerator DumpStatisticsLoop()
-    {
-        _statisticWriter.Dump();
-        while (true)
-        {
-            yield return new WaitForTicks(StatisticsDumpInterval);
-            _statisticWriter.Dump();
         }
     }
 
@@ -62,6 +80,7 @@ public class SimulationManager : MonoBehaviour
         
         // впоследствии здесь надо будет заменить на относительное время
         _maxSimulationTime = _config.SimLength * 3600;
+        Container.Instance.StatService.Initialize(_maxSimulationTime, _config);
         CreatePlatform();
         CreateDeployment();
         
@@ -71,12 +90,24 @@ public class SimulationManager : MonoBehaviour
     {
         foreach (var actor in Actors.Values)
         {
-            StartCoroutine(actor.MainLoop());
+            StartSimulationCoroutine(actor.MainLoop());
         }
-        StartCoroutine(DumpStatisticsLoop());
         yield return new WaitForTicks(MaxSimulationTime);
+        StopSimulationCoroutines();
         _statisticWriter.Dump();
-        StopAllCoroutines();
+    }
+
+    private void StopSimulationCoroutines()
+    {
+        foreach (var coroutine in _simulationCoroutines.ToArray())
+        {
+            if (coroutine != null)
+            {
+                StopCoroutine(coroutine);
+            }
+        }
+
+        _simulationCoroutines.Clear();
     }
 
 
@@ -104,6 +135,7 @@ public class SimulationManager : MonoBehaviour
                  _config.GroupConfig.RandomConfig.PowerB);
             power = Mathf.Clamp(power, _config.GroupConfig.MinSpeed, _config.GroupConfig.MaxSpeed);
             GridTotalPower += power;
+            Container.Instance.StatService.RecordHostPower(power);
             // здесь отправляем событие для подсчета всей мощности грида
             hosts.Add(new HostModel(power, hostId));
         }

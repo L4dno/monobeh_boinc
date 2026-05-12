@@ -6,9 +6,19 @@ public class StatisticWriter : IStatSaver
     private readonly IStatService _statService;
     private readonly IFileWriter[] _fileWriters;
 
-    const string WORKUNITS_FILE = "workunits.csv";
+    const string TASK_DYNAMIC_FILE = "task_dynamic";
+    const string WORKUNITS_CREATION_FILE = "workunits_creation";
+    const string CLIENTS_DYNAMIC_FILE = "clients_dynamic";
+    const string TASK_DYNAMIC_COMPLETED_FILE = "task_dynamic_completed";
+    const string WORKUNITS_ALL_DYNAMIC_FILE = "workunits_all_dynamic";
+    const string GRID_UTILIZATION_FILE = "grid_utilization";
+    const string SPEED_STATISTICS_FILE = "speed_statistics";
+    const string AVAILABILITY_FILE = "availability";
+    const string UNAVAILABILITY_FILE = "unavailability";
+    const string SENT_RESULTS_FILE = "sent_results";
+    const string GOT_RESULTS_FILE = "got_results";
+    const string GENERAL_FILE = "general";
     const string PARAMS_FILE = "parameters.json";
-    const string GRID_FILE = "grid.csv";
 
     // получает зависимости внешне тк не монобех
     public StatisticWriter(IConfigProvider configProvider, IStatService statService)
@@ -17,8 +27,18 @@ public class StatisticWriter : IStatSaver
         string outputDir = CreateStatisticsDirectory(configProvider.SimConfig);
         _fileWriters = new IFileWriter[]
         {
-            new WorkunitsWriter(Path.Combine(outputDir, WORKUNITS_FILE)),
-            new GridUtilityWriter(Path.Combine(outputDir, GRID_FILE))
+            new TaskDynamicWriter(Path.Combine(outputDir, TASK_DYNAMIC_FILE)),
+            new WorkunitsCreationWriter(Path.Combine(outputDir, WORKUNITS_CREATION_FILE)),
+            new ClientsDynamicWriter(Path.Combine(outputDir, CLIENTS_DYNAMIC_FILE)),
+            new TaskDynamicCompletedWriter(Path.Combine(outputDir, TASK_DYNAMIC_COMPLETED_FILE)),
+            new WorkunitsAllDynamicWriter(Path.Combine(outputDir, WORKUNITS_ALL_DYNAMIC_FILE)),
+            new GridUtilizationWriter(Path.Combine(outputDir, GRID_UTILIZATION_FILE)),
+            new SpeedStatisticsWriter(Path.Combine(outputDir, SPEED_STATISTICS_FILE)),
+            new AvailabilityWriter(Path.Combine(outputDir, AVAILABILITY_FILE)),
+            new UnavailabilityWriter(Path.Combine(outputDir, UNAVAILABILITY_FILE)),
+            new SentResultsWriter(Path.Combine(outputDir, SENT_RESULTS_FILE)),
+            new GotResultsWriter(Path.Combine(outputDir, GOT_RESULTS_FILE)),
+            new GeneralStatisticsWriter(Path.Combine(outputDir, GENERAL_FILE))
         };
         WriteParams(outputDir, configProvider.GetConfigsJson());
     }
@@ -49,7 +69,7 @@ public class StatisticWriter : IStatSaver
     {
         string paramsPath = Path.Combine(outputDir, PARAMS_FILE);
 
-        using (StreamWriter file = new StreamWriter(paramsPath, false))
+        using (StreamWriter file = FileWriterExtension.OpenLegacyWriter(paramsPath))
         {
             file.WriteLine(paramsJson);
         }
@@ -58,7 +78,6 @@ public class StatisticWriter : IStatSaver
     public void Dump()
     {
         var stats = _statService.GetStats();
-        Debug.LogWarning($"current online power is {stats.OnlinePower}, idle power is {stats.IdlePower}");
         foreach (var fileWriter in _fileWriters)
         {
             fileWriter.Dump(stats);

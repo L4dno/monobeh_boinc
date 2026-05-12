@@ -1,36 +1,29 @@
-using System;
 using System.IO;
-using UnityEngine;
 
-public class GridUtilityWriter : IFileWriter
+public class GridUtilizationWriter : IFileWriter
 {
     private readonly string _filePath;
-    private TimeTickSystem TimeSystem => Container.Instance.TimeSystem;
 
-    public GridUtilityWriter(string filePath)
+    public GridUtilizationWriter(string filePath)
     {
         _filePath = filePath;
-
-        using (StreamWriter file = new StreamWriter(_filePath, false))
-        {
-            file.WriteLine("timestamp,grid_utilization");
-        }
     }
 
     public void Dump(StatsData data)
     {
-        try
+        using (StreamWriter file = FileWriterExtension.OpenLegacyWriter(_filePath))
         {
-            using (StreamWriter file = new StreamWriter(_filePath, true))
+            float onlinePower = 0;
+            float idlePower = 0;
+
+            for (int tick = 0; tick < data.SimulationDuration; tick++)
             {
-                float gridUtil = data.OnlinePower > 0 ? (data.OnlinePower - data.IdlePower) / data.OnlinePower : 0;
-                int timestamp = TimeSystem.CurTick;
-                file.WriteLine($"{timestamp.ToCsv()},{gridUtil.ToCsv()}");
+                onlinePower += data.GridOnlinePowerDeltas[tick];
+                idlePower += data.GridIdlePowerDeltas[tick];
+                float busyPower = onlinePower - idlePower;
+                float gridUtilization = onlinePower > 0 ? busyPower / onlinePower : 0;
+                file.WriteLine(gridUtilization.ToCsv("0.000000"));
             }
-        }
-        catch (Exception ex)
-        {
-            Debug.LogError($"Error writing statistics: {ex.Message}");
         }
     }
 }

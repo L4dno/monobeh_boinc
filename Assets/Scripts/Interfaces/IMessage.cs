@@ -2,6 +2,6 @@
 public interface IMessage
 {
     // ???
-    float GetByteSize();
+    float GetSizeInMegabytes();
 
 }

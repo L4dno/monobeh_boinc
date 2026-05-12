@@ -1,19 +1,18 @@
 public class ClientRequestData : IMessage
 {
     public readonly string RequesterName;
-    public readonly int Power;
+    public readonly float Power;
     public readonly float Percentage;
 
-    public ClientRequestData(string requesterName, int power, float percentage)
+    public ClientRequestData(string requesterName, float power, float percentage)
     {
         RequesterName = requesterName;
         Power = power;
         Percentage = percentage;
     }
 
-    public float GetByteSize()
+    public float GetSizeInMegabytes()
     {
-        return 10240; // 10 KB
+        return 0.01f; // 10 KB
     }
 }
-

@@ -9,7 +9,6 @@ public class Activity : CustomYieldInstruction
 
     public Activity(float gflops, HostModel host)
     {
-
         int ticksToWait = (int)Mathf.Ceil(gflops / host.HostPower);
         _targetTick = TimeSystem.CurTick + ticksToWait;
     }
