@@ -84,6 +84,7 @@ public class ProjectModel : BaseActor, IProjectStats
                 else if (message is ClientReplyData reply)
                 {
                     RecordActiveHost(reply.ClientName);
+                    _database.RecordHostReturnedResult(reply.HostId);
                     if (ShouldDiscardReplyWithoutStats(reply))
                     {
                         continue;
@@ -268,7 +269,7 @@ public class ProjectModel : BaseActor, IProjectStats
                     continue;
                 }
 
-                ProcessResultValidation(workunit, result, ResultStatus.Fail, ResultValue.Incorrect, 0, true);
+                ProcessResultValidation(workunit, result, ResultStatus.Fail, ResultValue.Incorrect, 0, true, -1);
             }
 
             if (didWorkunitWork)
@@ -560,7 +561,7 @@ public class ProjectModel : BaseActor, IProjectStats
                         continue;
                     }
 
-                    ProcessResultValidation(workunit, result, reply.status, reply.value, reply.credits, false);
+                    ProcessResultValidation(workunit, result, reply.status, reply.value, reply.credits, false, reply.HostId);
                 }
                 else
                 {
@@ -579,7 +580,7 @@ public class ProjectModel : BaseActor, IProjectStats
         }
     }
 
-    private void ProcessResultValidation(WorkunitModel workunit, ResultData result, ResultStatus status, ResultValue value, int credits, bool isServerTimeout)
+    private void ProcessResultValidation(WorkunitModel workunit, ResultData result, ResultStatus status, ResultValue value, int credits, bool isServerTimeout, int hostId)
     {
         if (result.isValidationCompleted)
         {
@@ -608,6 +609,11 @@ public class ProjectModel : BaseActor, IProjectStats
             workunit.SuccessResults++;
             if (value == ResultValue.Correct)
             {
+                if (hostId >= 0)
+                {
+                    _database.RecordHostValidResult(hostId);
+                }
+
                 workunit.ValidResults++;
                 if (workunit.Credits == -1)
                 {

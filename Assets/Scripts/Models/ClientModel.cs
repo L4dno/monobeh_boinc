@@ -323,6 +323,7 @@ public class ClientModel : BaseActor, IClientStats
             
             var reply = new ClientReplyData(
                 this.ActorName,
+                Host.HostId,
                 status,
                 value, 
                 task.WorkunitName,
@@ -348,7 +349,7 @@ public class ClientModel : BaseActor, IClientStats
             }
         }
 
-        var request = new ClientRequestData(this.ActorName, Host.HostPower, workPercentage);
+        var request = new ClientRequestData(this.ActorName, Host.HostId, Host.HostPower, workPercentage);
         var requestComm = Push(proj.ProjectActorName, request);
         if (!requestComm.IsDone)
         {

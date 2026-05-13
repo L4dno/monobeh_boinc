@@ -3,12 +3,14 @@ using UnityEngine;
 public class ClientRequestData : IMessage
 {
     public readonly string RequesterName;
+    public readonly int HostId;
     public readonly float Power;
     public readonly float Percentage;
 
-    public ClientRequestData(string requesterName, float power, float percentage)
+    public ClientRequestData(string requesterName, int hostId, float power, float percentage)
     {
         RequesterName = requesterName;
+        HostId = hostId;
         Power = power;
         Percentage = percentage;
     }

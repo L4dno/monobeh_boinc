@@ -22,9 +22,42 @@ public class ProjectDatabase
     public int NeededQuorumReplicas = 0;
     public HashSet<int> ActiveHostIndexes = new HashSet<int>();
     public HashSet<string> ServerTimedOutResults = new HashSet<string>();
+    public Dictionary<int, int> HostSentResults = new Dictionary<int, int>();
+    public Dictionary<int, int> HostReturnedResults = new Dictionary<int, int>();
+    public Dictionary<int, int> HostValidResults = new Dictionary<int, int>();
     public int[] ApplicationTargets = new int[0];
     public float TheoreticalGflopsBudget = 0;
     public float EffectiveGflopsBudget = 0;
+
+    public void RecordHostSentResults(int hostId, int resultsNumber)
+    {
+        if (resultsNumber <= 0)
+        {
+            return;
+        }
+
+        AddHostStatistic(HostSentResults, hostId, resultsNumber);
+    }
+
+    public void RecordHostReturnedResult(int hostId)
+    {
+        AddHostStatistic(HostReturnedResults, hostId, 1);
+    }
+
+    public void RecordHostValidResult(int hostId)
+    {
+        AddHostStatistic(HostValidResults, hostId, 1);
+    }
+
+    private void AddHostStatistic(Dictionary<int, int> statistics, int hostId, int value)
+    {
+        if (!statistics.ContainsKey(hostId))
+        {
+            statistics.Add(hostId, 0);
+        }
+
+        statistics[hostId] += value;
+    }
 }
 
 public class ApplicationRuntimeState

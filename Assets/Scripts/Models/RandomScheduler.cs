@@ -122,6 +122,7 @@ public class RandomScheduler : IScheduler
         }
 
         var reply = new ServerReplyData(tasksToSend, inputTransferSizeMb);
+        _database.RecordHostSentResults(request.HostId, resultsToSend.Count);
         StatService.RecordResultsSent(resultsToSend.Count);
         StatService.RecordSentResults(tasksToSend.Count, TimeSystem.CurTick);
         _sendMessage(request.RequesterName, reply);
