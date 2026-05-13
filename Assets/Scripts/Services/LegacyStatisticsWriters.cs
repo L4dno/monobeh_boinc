@@ -13,10 +13,11 @@ public class TaskDynamicWriter : IFileWriter
     {
         using (StreamWriter file = FileWriterExtension.OpenLegacyWriter(_filePath))
         {
+            int outputDuration = data.GetOutputDuration();
             for (int applicationIndex = 0; applicationIndex < data.ValidWorkunitsTimestamps.Length; applicationIndex++)
             {
                 var timestamps = data.ValidWorkunitsTimestamps[applicationIndex];
-                for (int tick = 0; tick < data.SimulationDuration; tick++)
+                for (int tick = 0; tick < outputDuration; tick++)
                 {
                     file.WriteLine($"{applicationIndex.ToCsv()} {timestamps[tick].ToCsv()}");
                 }
@@ -38,7 +39,8 @@ public class ClientsDynamicWriter : IFileWriter
     {
         using (StreamWriter file = FileWriterExtension.OpenLegacyWriter(_filePath))
         {
-            for (int tick = 0; tick < data.SimulationDuration; tick++)
+            int outputDuration = data.GetOutputDuration();
+            for (int tick = 0; tick < outputDuration; tick++)
             {
                 file.WriteLine(data.ClientsAvailability[tick].ToCsv());
             }
@@ -80,7 +82,8 @@ public class TaskDynamicCompletedWriter : IFileWriter
     {
         using (StreamWriter file = FileWriterExtension.OpenLegacyWriter(_filePath))
         {
-            for (int tick = 0; tick < data.SimulationDuration; tick++)
+            int outputDuration = data.GetOutputDuration();
+            for (int tick = 0; tick < outputDuration; tick++)
             {
                 file.WriteLine($"{data.FirstApplicationInitialResults.ToCsv()} {data.ValidCompletedWorkunitsTimestamps[tick].ToCsv()}");
             }
@@ -101,7 +104,8 @@ public class WorkunitsAllDynamicWriter : IFileWriter
     {
         using (StreamWriter file = FileWriterExtension.OpenLegacyWriter(_filePath))
         {
-            for (int tick = 0; tick < data.SimulationDuration; tick++)
+            int outputDuration = data.GetOutputDuration();
+            for (int tick = 0; tick < outputDuration; tick++)
             {
                 file.WriteLine(data.WorkunitTimestamps[tick].ToCsv());
             }
@@ -208,15 +212,20 @@ public class GeneralStatisticsWriter : IFileWriter
         {
             int completedWorkunits = data.CompletedWorkunits;
             int notCompletedWorkunits = data.CreatedWorkunits - completedWorkunits;
-            float averageSpeed = GetAverage(data.SpeedStatistics);
-            float availability = GetAvailability(data);
-            float throughput = data.SimulationDuration > 0 ? data.MessagesReceived / (float)data.SimulationDuration : 0;
+            float averageSpeed = data.GetAverage(data.SpeedStatistics);
+            float availability = data.GetAvailability();
+            int outputDuration = data.GetOutputDuration();
+            float throughput = outputDuration > 0 ? data.MessagesReceived / (float)outputDuration : 0;
+            int tailMakespan = data.TailStartTick >= 0 ? data.FinishTick - data.TailStartTick : -1;
+            float tailIdleness = data.TailStartTick >= 0 ? CalculateTailIdleness(data) : -1;
+            float deadlineMissRate = data.ResultsSent > 0 ? data.ResultsTooLate / (float)data.ResultsSent : 0;
 
             file.WriteLine($"Total number of clients: {data.NumberOfClients.ToCsv()}");
             file.WriteLine();
             file.WriteLine($"#################### {data.ProjectName} ####################");
             file.WriteLine();
-            file.WriteLine($"Simulation ends in {(data.SimulationDuration / 3600).ToCsv()} h ({data.SimulationDuration.ToCsv()} sec)");
+            file.WriteLine($"Simulation ends in {(data.FinishTick / 3600).ToCsv()} h ({data.FinishTick.ToCsv()} sec)");
+            file.WriteLine($"Simulation limit: {(data.SimulationDuration / 3600).ToCsv()} h ({data.SimulationDuration.ToCsv()} sec)");
             file.WriteLine();
             file.WriteLine($"Number of clients: {data.NumberOfClients.ToCsv()}");
             file.WriteLine($"Tail stage active: {data.TailStageActive.ToCsv()}");
@@ -225,20 +234,20 @@ public class GeneralStatisticsWriter : IFileWriter
             file.WriteLine($"Effective GFLOP budget: {data.EffectiveGflopsBudget.ToCsv("0.0")}");
             file.WriteLine($"Messages received: {data.MessagesReceived.ToCsv()}");
             file.WriteLine($"Work requests received: {data.WorkRequestsReceived.ToCsv()}");
-            file.WriteLine($"Results created: {data.ResultsCreated.ToCsv()} ({Percent(data.ResultsCreated, data.WorkRequestsReceived).ToCsv("0.0")}%)");
-            file.WriteLine($"Results sent: {data.ResultsSent.ToCsv()} ({Percent(data.ResultsSent, data.ResultsCreated).ToCsv("0.0")}%)");
-            file.WriteLine($"Results received: {data.ResultsReceived.ToCsv()} ({Percent(data.ResultsReceived, data.ResultsCreated).ToCsv("0.0")}%)");
-            file.WriteLine($"Results analyzed: {data.ResultsAnalyzed.ToCsv()} ({Percent(data.ResultsAnalyzed, data.ResultsReceived).ToCsv("0.0")}%)");
-            file.WriteLine($"Results success: {data.ResultsSuccess.ToCsv()} ({Percent(data.ResultsSuccess, data.ResultsAnalyzed).ToCsv("0.0")}%)");
-            file.WriteLine($"Results failed: {data.ResultsFailed.ToCsv()} ({Percent(data.ResultsFailed, data.ResultsAnalyzed).ToCsv("0.0")}%)");
-            file.WriteLine($"Results too late: {data.ResultsTooLate.ToCsv()} ({Percent(data.ResultsTooLate, data.ResultsAnalyzed).ToCsv("0.0")}%)");
-            file.WriteLine($"Results valid: {data.ResultsValid.ToCsv()} ({Percent(data.ResultsValid, data.ResultsAnalyzed).ToCsv("0.0")}%)");
+            file.WriteLine($"Results created: {data.ResultsCreated.ToCsv()} ({data.Percent(data.ResultsCreated, data.WorkRequestsReceived).ToCsv("0.0")}%)");
+            file.WriteLine($"Results sent: {data.ResultsSent.ToCsv()} ({data.Percent(data.ResultsSent, data.ResultsCreated).ToCsv("0.0")}%)");
+            file.WriteLine($"Results received: {data.ResultsReceived.ToCsv()} ({data.Percent(data.ResultsReceived, data.ResultsCreated).ToCsv("0.0")}%)");
+            file.WriteLine($"Results analyzed: {data.ResultsAnalyzed.ToCsv()} ({data.Percent(data.ResultsAnalyzed, data.ResultsReceived).ToCsv("0.0")}%)");
+            file.WriteLine($"Results success: {data.ResultsSuccess.ToCsv()} ({data.Percent(data.ResultsSuccess, data.ResultsAnalyzed).ToCsv("0.0")}%)");
+            file.WriteLine($"Results failed: {data.ResultsFailed.ToCsv()} ({data.Percent(data.ResultsFailed, data.ResultsAnalyzed).ToCsv("0.0")}%)");
+            file.WriteLine($"Results too late: {data.ResultsTooLate.ToCsv()} ({data.Percent(data.ResultsTooLate, data.ResultsAnalyzed).ToCsv("0.0")}%)");
+            file.WriteLine($"Results valid: {data.ResultsValid.ToCsv()} ({data.Percent(data.ResultsValid, data.ResultsAnalyzed).ToCsv("0.0")}%)");
             file.WriteLine($"Workunits total: {data.CreatedWorkunits.ToCsv()}");
-            file.WriteLine($"Workunits completed: {completedWorkunits.ToCsv()} ({Percent(completedWorkunits, data.CreatedWorkunits).ToCsv("0.0")}%)");
-            file.WriteLine($"Workunits not completed: {notCompletedWorkunits.ToCsv()} ({Percent(notCompletedWorkunits, data.CreatedWorkunits).ToCsv("0.0")}%)");
-            file.WriteLine($"Workunits valid: {data.WorkunitsValid.ToCsv()} ({Percent(data.WorkunitsValid, data.CreatedWorkunits).ToCsv("0.0")}%)");
-            file.WriteLine($"Workunits valid but not completed: {data.WorkunitsValidButNotCompleted.ToCsv()} ({Percent(data.WorkunitsValidButNotCompleted, data.CreatedWorkunits).ToCsv("0.0")}%)");
-            file.WriteLine($"Workunits error: {data.WorkunitsError.ToCsv()} ({Percent(data.WorkunitsError, data.CreatedWorkunits).ToCsv("0.0")}%)");
+            file.WriteLine($"Workunits completed: {completedWorkunits.ToCsv()} ({data.Percent(completedWorkunits, data.CreatedWorkunits).ToCsv("0.0")}%)");
+            file.WriteLine($"Workunits not completed: {notCompletedWorkunits.ToCsv()} ({data.Percent(notCompletedWorkunits, data.CreatedWorkunits).ToCsv("0.0")}%)");
+            file.WriteLine($"Workunits valid: {data.WorkunitsValid.ToCsv()} ({data.Percent(data.WorkunitsValid, data.CreatedWorkunits).ToCsv("0.0")}%)");
+            file.WriteLine($"Workunits valid but not completed: {data.WorkunitsValidButNotCompleted.ToCsv()} ({data.Percent(data.WorkunitsValidButNotCompleted, data.CreatedWorkunits).ToCsv("0.0")}%)");
+            file.WriteLine($"Workunits error: {data.WorkunitsError.ToCsv()} ({data.Percent(data.WorkunitsError, data.CreatedWorkunits).ToCsv("0.0")}%)");
             file.WriteLine($"Throughput: {throughput.ToCsv("0.0")} messages/s");
             file.WriteLine($"Credit granted: {data.TotalCredit.ToCsv()} credits");
             file.WriteLine();
@@ -254,55 +263,43 @@ public class GeneralStatisticsWriter : IFileWriter
             }
 
             file.WriteLine($"Clients. Average speed: {averageSpeed.ToCsv("0.000000")} GFLOPS. Available: {availability.ToCsv("0.0")}% Not available {(100 - availability).ToCsv("0.0")}%");
+            file.WriteLine();
+            file.WriteLine("#################### Tail metrics ####################");
+            file.WriteLine($"Ttail: {data.TailStartTick.ToCsv()} sec");
+            file.WriteLine($"Tfinish: {data.FinishTick.ToCsv()} sec");
+            file.WriteLine($"TailMakespan: {tailMakespan.ToCsv()} sec");
+            file.WriteLine($"TailIdleness: {tailIdleness.ToCsv("0.000000")}");
+            file.WriteLine($"DeadlineMissRate: {deadlineMissRate.ToCsv("0.000000")}");
         }
     }
 
-    private float Percent(int value, int total)
+    private float CalculateTailIdleness(StatsData data)
     {
-        if (total <= 0)
+        int startTick = data.GetBoundedTick(data.TailStartTick);
+        int finishTick = data.GetBoundedTick(data.FinishTick);
+        float onlinePower = 0;
+        float idlePower = 0;
+        float tailOnlinePowerTime = 0;
+        float tailIdlePowerTime = 0;
+
+        for (int tick = 0; tick < finishTick; tick++)
+        {
+            onlinePower += data.GridOnlinePowerDeltas[tick];
+            idlePower += data.GridIdlePowerDeltas[tick];
+
+            if (tick >= startTick)
+            {
+                tailOnlinePowerTime += onlinePower;
+                tailIdlePowerTime += idlePower;
+            }
+        }
+
+        if (tailOnlinePowerTime <= 0)
         {
             return 0;
         }
 
-        return value / (float)total * 100;
+        return tailIdlePowerTime / tailOnlinePowerTime;
     }
 
-    private float GetAverage(System.Collections.Generic.List<StatValueData> values)
-    {
-        if (values.Count == 0)
-        {
-            return 0;
-        }
-
-        float sum = 0;
-        foreach (var value in values)
-        {
-            sum += value.Value;
-        }
-
-        return sum / values.Count;
-    }
-
-    private float GetAvailability(StatsData data)
-    {
-        float available = 0;
-        foreach (var value in data.Availability)
-        {
-            available += value.Value;
-        }
-
-        float unavailable = 0;
-        foreach (var value in data.Unavailability)
-        {
-            unavailable += value.Value;
-        }
-
-        float total = available + unavailable;
-        if (total <= 0)
-        {
-            return 0;
-        }
-
-        return available / total * 100;
-    }
 }

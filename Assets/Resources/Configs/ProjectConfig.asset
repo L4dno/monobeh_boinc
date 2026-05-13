@@ -20,4 +20,4 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 466e5459789182a4eae755b86f845ed0, type: 2}
   ServerPowerGflops: 250
   GenerationMode: 1
-  UtilizationSafety: 0.7
+  UtilizationSafety: 0.3

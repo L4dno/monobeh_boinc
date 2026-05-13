@@ -5,6 +5,7 @@ using System.Collections.Generic;
 public  class MailBox
 {
     private readonly Queue<IMessage> _messageQueue = new Queue<IMessage>();
+    private readonly CoroutineCondition _messageAvailableCondition = new CoroutineCondition();
     private SimulationManager SimManager => Container.Instance.SimManager;
 
     public IEnumerator Put(IMessage message)
@@ -15,11 +16,13 @@ public  class MailBox
         yield return new WaitForTicks(ticksToWait);
         
         _messageQueue.Enqueue(message);
+        _messageAvailableCondition.Signal();
     }
 
     public void PutNow(IMessage message)
     {
         _messageQueue.Enqueue(message);
+        _messageAvailableCondition.Signal();
     }
 
     public IMessage Get()
@@ -55,5 +58,13 @@ public  class MailBox
     public bool Empty()
     {
         return _messageQueue.Count == 0;
+    }
+
+    public IEnumerator WaitForMessage()
+    {
+        while (_messageQueue.Count == 0)
+        {
+            yield return _messageAvailableCondition.Wait();
+        }
     }
 }

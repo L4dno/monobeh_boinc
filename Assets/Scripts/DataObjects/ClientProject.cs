@@ -30,7 +30,12 @@ public class ClientProject
     {
         Name = config.ProjectName;
         Priority = config.Priority;
-        ProjectActorName = $"project{config.ProjectId}";
+        ProjectActorName = config.ProjectActorName;
         Config = config;
+    }
+
+    public bool HasRunnableResults()
+    {
+        return Tasks.Count > 0 || RunList.Count > 0;
     }
 }

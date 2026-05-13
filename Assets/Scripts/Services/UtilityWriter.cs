@@ -15,8 +15,9 @@ public class GridUtilizationWriter : IFileWriter
         {
             float onlinePower = 0;
             float idlePower = 0;
+            int outputDuration = data.GetOutputDuration();
 
-            for (int tick = 0; tick < data.SimulationDuration; tick++)
+            for (int tick = 0; tick < outputDuration; tick++)
             {
                 onlinePower += data.GridOnlinePowerDeltas[tick];
                 idlePower += data.GridIdlePowerDeltas[tick];

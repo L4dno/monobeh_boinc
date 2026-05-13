@@ -10,6 +10,8 @@ public class StatService : IStatService
         data.ProjectName = simConfig.ProjectConfig.ProjectName;
         data.NumberOfClients = simConfig.GroupConfig.NumberOfClients;
         data.TailStageActive = simConfig.ProjectConfig.GenerationMode == WorkunitGenerationMode.TailBudget ? 1 : 0;
+        data.TailStartTick = -1;
+        data.FinishTick = maxSimulationTime;
         data.UtilizationSafety = simConfig.ProjectConfig.UtilizationSafety;
         data.TheoreticalGflopsBudget = 0;
         data.EffectiveGflopsBudget = 0;
@@ -82,8 +84,8 @@ public class StatService : IStatService
 
     public void RecordAvailability(float durationHours, int startTick, int durationTicks)
     {
-        int start = GetBoundedTick(startTick);
-        int end = GetBoundedTick(startTick + durationTicks);
+        int start = data.GetBoundedTick(startTick);
+        int end = data.GetBoundedTick(startTick + durationTicks);
         data.ClientsAvailability[start] += 1;
         data.ClientsAvailability[end] -= 1;
         data.Availability.Add(new StatValueData(durationHours));
@@ -215,6 +217,19 @@ public class StatService : IStatService
         }
     }
 
+    public void RecordTailStarted(int tick)
+    {
+        if (data.TailStartTick < 0)
+        {
+            data.TailStartTick = data.GetBoundedTick(tick);
+        }
+    }
+
+    public void RecordSimulationFinished(int tick)
+    {
+        data.FinishTick = data.GetBoundedTick(tick);
+    }
+
     public void RecordSentResults(int resultsNumber, int timestamp)
     {
         if (timestamp >= data.SimulationDuration)
@@ -237,28 +252,28 @@ public class StatService : IStatService
 
     private void OnGoingOffline(string hostName, float power)
     {
-        int tick = GetBoundedTick(TimeSystem.CurTick);
+        int tick = data.GetBoundedTick(TimeSystem.CurTick);
         data.GridOnlinePowerDeltas[tick] -= power;
         data.OnlinePower -= power;
     }
 
     private void OnGoingOnline(string hostName, float power)
     {
-        int tick = GetBoundedTick(TimeSystem.CurTick);
+        int tick = data.GetBoundedTick(TimeSystem.CurTick);
         data.GridOnlinePowerDeltas[tick] += power;
         data.OnlinePower += power;
     }
 
     private void OnIdleMode(string hostName, float power)
     {
-        int tick = GetBoundedTick(TimeSystem.CurTick);
+        int tick = data.GetBoundedTick(TimeSystem.CurTick);
         data.GridIdlePowerDeltas[tick] += power;
         data.IdlePower += power;
     }
 
     private void OnBusyMode(string hostName, float power)
     {
-        int tick = GetBoundedTick(TimeSystem.CurTick);
+        int tick = data.GetBoundedTick(TimeSystem.CurTick);
         data.GridIdlePowerDeltas[tick] -= power;
         data.IdlePower -= power;
     }
@@ -270,7 +285,7 @@ public class StatService : IStatService
             return;
         }
 
-        int tick = GetBoundedTick(TimeSystem.CurTick);
+        int tick = data.GetBoundedTick(TimeSystem.CurTick);
         data.ValidCompletedWorkunitsTimestamps[tick] += 1;
     }
 
@@ -281,7 +296,7 @@ public class StatService : IStatService
             return;
         }
 
-        int tick = GetBoundedTick(TimeSystem.CurTick);
+        int tick = data.GetBoundedTick(TimeSystem.CurTick);
         data.CreationWorkunitTimestamps[applicationIndex][tick] += 1;
         data.UnfinishedWorkunits += 1;
         data.CreatedWorkunits += 1;
@@ -295,7 +310,7 @@ public class StatService : IStatService
             return;
         }
 
-        int tick = GetBoundedTick(TimeSystem.CurTick);
+        int tick = data.GetBoundedTick(TimeSystem.CurTick);
         data.ValidWorkunitsTimestamps[applicationIndex][tick] += 1;
     }
 
@@ -304,18 +319,4 @@ public class StatService : IStatService
         return TimeSystem.CurTick < data.SimulationDuration;
     }
 
-    private int GetBoundedTick(int tick)
-    {
-        if (tick < 0)
-        {
-            return 0;
-        }
-
-        if (tick > data.SimulationDuration)
-        {
-            return data.SimulationDuration;
-        }
-
-        return tick;
-    }
 }

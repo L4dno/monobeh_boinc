@@ -14,6 +14,8 @@ public interface IStatService {
     void RecordAdditionalValidResult(int credit);
     void RecordWorkunitAssimilated(bool isValid);
     void RecordTailBudget(float theoreticalGflopsBudget, float effectiveGflopsBudget, int[] applicationTargets);
+    void RecordTailStarted(int tick);
+    void RecordSimulationFinished(int tick);
     void RecordSentResults(int resultsNumber, int timestamp);
     void RecordGotResult(int isCorrect, int timestamp);
     StatsData GetStats();

@@ -1,3 +1,5 @@
+using UnityEngine;
+
 public class ClientRequestData : IMessage
 {
     public readonly string RequesterName;
@@ -14,5 +16,17 @@ public class ClientRequestData : IMessage
     public float GetSizeInMegabytes()
     {
         return 0.01f; // 10 KB
+    }
+
+    public int CalculateResultsNumber(ResultData result)
+    {
+        float taskDuration = result.durationInGflops / Power;
+        int resultsNumber = Mathf.FloorToInt(Percentage / taskDuration);
+        if (resultsNumber == 0)
+        {
+            resultsNumber = 1;
+        }
+
+        return resultsNumber;
     }
 }

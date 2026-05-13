@@ -6,6 +6,8 @@ public class StatsData
     public string ProjectName;
     public int NumberOfClients;
     public int TailStageActive;
+    public int TailStartTick;
+    public int FinishTick;
     public float UtilizationSafety;
     public float TheoreticalGflopsBudget;
     public float EffectiveGflopsBudget;
@@ -48,6 +50,75 @@ public class StatsData
     public List<StatValueData> SpeedStatistics = new List<StatValueData>();
     public List<StatPairData> SentResults = new List<StatPairData>();
     public List<StatPairData> GotResults = new List<StatPairData>();
+
+    public float Percent(int value, int total)
+    {
+        if (total <= 0)
+        {
+            return 0;
+        }
+
+        return value / (float)total * 100;
+    }
+
+    public float GetAverage(List<StatValueData> values)
+    {
+        if (values.Count == 0)
+        {
+            return 0;
+        }
+
+        float sum = 0;
+        foreach (var value in values)
+        {
+            sum += value.Value;
+        }
+
+        return sum / values.Count;
+    }
+
+    public float GetAvailability()
+    {
+        float available = 0;
+        foreach (var value in Availability)
+        {
+            available += value.Value;
+        }
+
+        float unavailable = 0;
+        foreach (var value in Unavailability)
+        {
+            unavailable += value.Value;
+        }
+
+        float total = available + unavailable;
+        if (total <= 0)
+        {
+            return 0;
+        }
+
+        return available / total * 100;
+    }
+
+    public int GetBoundedTick(int tick)
+    {
+        if (tick < 0)
+        {
+            return 0;
+        }
+
+        if (tick > SimulationDuration)
+        {
+            return SimulationDuration;
+        }
+
+        return tick;
+    }
+
+    public int GetOutputDuration()
+    {
+        return GetBoundedTick(FinishTick);
+    }
 }
 
 public class StatValueData

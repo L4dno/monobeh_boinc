@@ -13,10 +13,11 @@ public class WorkunitsCreationWriter : IFileWriter
     {
         using (StreamWriter file = FileWriterExtension.OpenLegacyWriter(_filePath))
         {
+            int outputDuration = data.GetOutputDuration();
             for (int applicationIndex = 0; applicationIndex < data.CreationWorkunitTimestamps.Length; applicationIndex++)
             {
                 var timestamps = data.CreationWorkunitTimestamps[applicationIndex];
-                for (int tick = 0; tick < data.SimulationDuration; tick++)
+                for (int tick = 0; tick < outputDuration; tick++)
                 {
                     file.WriteLine($"{applicationIndex.ToCsv()} {timestamps[tick].ToCsv()}");
                 }

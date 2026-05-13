@@ -514,23 +514,13 @@ public class ClientModel : BaseActor, IClientStats
         task.ExecutionStartTick = TimeSystem.CurTick;
     }
 
-    private float GetRemainingDuration(ClientTaskData task)
-    {
-        return task.RemainingDurationInGflops / Host.HostPower;
-    }
-
-    private bool HasRunnableResults(ClientProject project)
-    {
-        return project.Tasks.Any() || project.RunList.Any();
-    }
-
     private void UpdateDebt()
     {
         float totalWallCpuTime = _projects.Values.Sum(p => p.WallCpuTime);
         float runnablePrioritySum = _projects.Values
-            .Where(HasRunnableResults)
+            .Where(p => p.HasRunnableResults())
             .Sum(p => p.Priority);
-        int runnableProjects = _projects.Values.Count(HasRunnableResults);
+        int runnableProjects = _projects.Values.Count(p => p.HasRunnableResults());
         float totalShortTermDebt = 0;
 
         foreach (var proj in _projects.Values)
@@ -549,7 +539,7 @@ public class ClientModel : BaseActor, IClientStats
                 proj.ShortTermDebt = 0;
             }
 
-            if (!HasRunnableResults(proj))
+            if (!proj.HasRunnableResults())
             {
                 proj.ShortTermDebt = 0;
             }
@@ -566,7 +556,7 @@ public class ClientModel : BaseActor, IClientStats
         float debtShift = totalShortTermDebt / runnableProjects;
         foreach (var proj in _projects.Values)
         {
-            if (!HasRunnableResults(proj))
+            if (!proj.HasRunnableResults())
             {
                 continue;
             }
@@ -584,8 +574,8 @@ public class ClientModel : BaseActor, IClientStats
         foreach (var proj in _projects.Values)
         {
             float projectWorkDuration = 0;
-            projectWorkDuration += proj.Tasks.Sum(GetRemainingDuration);
-            projectWorkDuration += proj.RunList.Sum(GetRemainingDuration);
+            projectWorkDuration += proj.Tasks.Sum(t => t.GetRemainingDuration(Host.HostPower));
+            projectWorkDuration += proj.RunList.Sum(t => t.GetRemainingDuration(Host.HostPower));
 
             proj.Shortfall = _config.ConnectionInterval * (proj.Priority / _sumPriority) - projectWorkDuration;
             if (proj.Shortfall < 0) proj.Shortfall = 0;
@@ -613,7 +603,7 @@ public class ClientModel : BaseActor, IClientStats
         var simResults = allResults.Select(t => new SimResult
         {
             Result = t,
-            RemainingDuration = GetRemainingDuration(t.Item1)
+            RemainingDuration = t.Item1.GetRemainingDuration(Host.HostPower)
         }).ToList();
 
         float clockSim = TimeSystem.CurTick;
@@ -680,7 +670,7 @@ public class ClientModel : BaseActor, IClientStats
             _deadlineMissedResults.Remove(resultToRun);
 
             // Check if it will miss the deadline for sure
-            var remainingTime = GetRemainingDuration(resultToRun.Item1);
+            var remainingTime = resultToRun.Item1.GetRemainingDuration(Host.HostPower);
             if (TimeSystem.CurTick + remainingTime > resultToRun.Item1.DeadlineTick)
             {
                 // Result will be missed, discard it.
