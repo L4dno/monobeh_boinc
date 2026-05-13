@@ -15,6 +15,7 @@ public class SimulationManager : MonoBehaviour
     private IStatSaver _statisticWriter;
     private TimeTickSystem _timeSystem;
     private SimConfig _config;
+    private bool _finishRequested;
 
     public Dictionary<string, BaseActor> Actors { get; private set; }
     private List<HostModel> hosts;
@@ -53,6 +54,11 @@ public class SimulationManager : MonoBehaviour
 
         _simulationCoroutines.Remove(coroutine);
     }
+
+    public void RequestSimulationFinish()
+    {
+        _finishRequested = true;
+    }
     
     public void RegisterActor(BaseActor actor)
     {
@@ -72,6 +78,7 @@ public class SimulationManager : MonoBehaviour
         _timeSystem = Container.Instance.TimeSystem;
         var configProvider = Container.Instance.ConfigProvider;
         _config = configProvider.SimConfig;
+        _finishRequested = false;
 
         Actors = new Dictionary<string, BaseActor>();
         hosts = new List<HostModel>();
@@ -92,8 +99,9 @@ public class SimulationManager : MonoBehaviour
         {
             StartSimulationCoroutine(actor.MainLoop());
         }
-        yield return new WaitForTicks(MaxSimulationTime);
+        yield return new WaitUntil(() => _finishRequested || _timeSystem.CurTick >= MaxSimulationTime);
         StopSimulationCoroutines();
+        Container.Instance.StatService.RecordSimulationFinished(_timeSystem.CurTick);
         _statisticWriter.Dump();
     }
 

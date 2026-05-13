@@ -44,4 +44,9 @@ public class ClientTaskData
         Running = false;
         Project = null;
     }
+
+    public float GetRemainingDuration(float hostPower)
+    {
+        return RemainingDurationInGflops / hostPower;
+    }
 }

@@ -19,7 +19,7 @@ MonoBehaviour:
   InitialCreatedResults: 2
   WorkunitsNumber: 1e+11
   SleepTime: 86400
-  DelayBound: 1000000
+  DelayBound: 86400
   MinQuorum: 2
   MaxCreatedResults: 20
   MaxErrorResults: 7

@@ -52,6 +52,11 @@ public abstract class BaseActor
     {
         _mailbox.PutNow(message);
     }
+
+    protected IEnumerator WaitForMessage()
+    {
+        return _mailbox.WaitForMessage();
+    }
 }
 
 public class MessageComm : CustomYieldInstruction

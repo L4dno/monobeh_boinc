@@ -22,6 +22,7 @@ public class ProjectConfig : ScriptableObject
     
     [FormerlySerializedAs("<ProjectId>k__BackingField")]
     public int ProjectId  = 0;
+    public string ProjectActorName => $"project{ProjectId}";
 
     
     [FormerlySerializedAs("WorkunitConfigs")]

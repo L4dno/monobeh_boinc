@@ -1,17 +1,18 @@
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
+//using Unity.MLAgents;
 using UnityEngine;
 using System.Collections;
 
 public class EntryPoint : MonoBehaviour
 {
+    private const string SimulationSeedParameterName = "simulation_seed";
 
     // единственный метод старт в игре
     private IEnumerator Start()
     {
         BindObjects();
-        yield return InitializeObjects();
         yield return CreateObjects();
         PrepareGame();
         yield return BeginGame();
@@ -26,6 +27,7 @@ public class EntryPoint : MonoBehaviour
 
     private void PrepareGame()
     {
+        InitializeObjects();
         Container.Instance.SimManager.Initialize();
         // разместить созданные игровые объекты с параметрами на сцене
     }
@@ -36,12 +38,20 @@ public class EntryPoint : MonoBehaviour
         GetComponent<Container>().Bootstrap();
     }
 
-    private IEnumerator InitializeObjects()
+    private void InitializeObjects()
     {
         // запуск сервисов раньше всего остального
-        RandomUtils.SetSeed(Container.Instance.ConfigProvider.SimConfig.DeterministicSeed);
-        yield return null;
+        RandomUtils.ResetSeed(Container.Instance.ConfigProvider.SimConfig.DeterministicSeed);
+        //RandomUtils.SetSeed(ResolveSimulationSeed());
     }
+
+    // private int ResolveSimulationSeed()
+    // {
+    //     int defaultSeed = Container.Instance.ConfigProvider.SimConfig.DeterministicSeed;
+    //     EnvironmentParameters parameters = Academy.Instance.EnvironmentParameters;
+    //     float value = parameters.GetWithDefault(SimulationSeedParameterName, defaultSeed);
+    //     return Mathf.RoundToInt(value);
+    // }
 
     private IEnumerator CreateObjects()
     {

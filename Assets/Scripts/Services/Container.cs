@@ -16,6 +16,8 @@ public class Container : MonoBehaviour
     [field : SerializeField] 
     public SimulationManager SimManager {get; private set;}
 
+    public IScheduler CommonScheduler {get; private set;}
+    public IScheduler TailScheduler {get; private set;}
 
     public void Bootstrap() {
         Instance = this;
@@ -29,5 +31,8 @@ public class Container : MonoBehaviour
 
         TimeSystem = Instantiate(TimeSystem);
         SimManager = Instantiate(SimManager);
+
+        CommonScheduler = new BoincScheduler();
+        TailScheduler = new BoincScheduler();
     }
 }

@@ -15,6 +15,88 @@ public enum Distribution
 
 public static class RandomUtils
 {
+
+    public static float GetDistributionMean(Distribution distribution, float a, float b)
+    {
+        switch (distribution)
+        {
+            case Distribution.Weibull:
+                if (a <= 0)
+                {
+                    return 0;
+                }
+                return b * GammaFunction(1f + 1f / a);
+            case Distribution.Gamma:
+                return a * b;
+            case Distribution.Lognormal:
+                return Mathf.Exp(a + b * b / 2f);
+            case Distribution.Normal:
+                return a;
+            case Distribution.Hyperx:
+                return a;
+            case Distribution.Exponential:
+                if (a <= 0)
+                {
+                    return 0;
+                }
+                return 1f / a;
+            case Distribution.One:
+                return 1f;
+            case Distribution.Zero:
+                return 0;
+            case Distribution.Uniform:
+                return (a + b) / 2f;
+            default:
+                return 0;
+        }
+    }
+
+
+    public static float GetClampedDistributionMean(Distribution distribution, float a, float b, float minSpeed, float maxSpeed)
+    {
+        float mean = GetDistributionMean(distribution, a, b);
+
+        if (maxSpeed < minSpeed)
+        {
+            float aux = minSpeed;
+            minSpeed = maxSpeed;
+            maxSpeed = aux;
+        }
+
+        if (distribution == Distribution.Exponential && a > 0)
+        {
+            float lower = Mathf.Max(minSpeed, 0);
+            float upper = Mathf.Max(maxSpeed, lower);
+            float pLow = 1f - Mathf.Exp(-a * lower);
+            float pHigh = Mathf.Exp(-a * upper);
+            float middle = (lower + 1f / a) * Mathf.Exp(-a * lower) - (upper + 1f / a) * Mathf.Exp(-a * upper);
+            return lower * pLow + middle + upper * pHigh;
+        }
+
+        if (mean < minSpeed)
+        {
+            return minSpeed;
+        }
+        if (mean > maxSpeed)
+        {
+            return maxSpeed;
+        }
+        return mean;
+    }
+
+    private static float GammaFunction(float z)
+    {
+        if (z <= 0)
+        {
+            return 0;
+        }
+
+        float z2 = z * z;
+        float z3 = z2 * z;
+        float correction = 1f + 1f / (12f * z) + 1f / (288f * z2) - 139f / (51840f * z3);
+        return Mathf.Sqrt(2f * Mathf.PI / z) * Mathf.Pow(z / Mathf.Exp(1f), z) * correction;
+    }
+
     private static bool _isInitialized = false;
 
     public static void SetSeed(int seed)
@@ -22,8 +104,22 @@ public static class RandomUtils
         if (_isInitialized)
             throw new System.InvalidOperationException("Trying to reset current seed");
 
+        ResetSeed(seed);
+    }
+
+    public static void ResetSeed(int seed)
+    {
         UnityEngine.Random.InitState(seed);
+        z2 = 0.0f;
         _isInitialized = true;
+    }
+
+    public static int GetRandomIndex(int length)
+    {
+        if (length <= 0)
+            throw new System.ArgumentOutOfRangeException(nameof(length));
+
+        return UnityEngine.Random.Range(0, length);
     }
 
     private static float Uniform()

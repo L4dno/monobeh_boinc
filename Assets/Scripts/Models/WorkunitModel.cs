@@ -15,6 +15,7 @@ public class WorkunitModel
     private readonly ApplicationConfig _config;
 
     public List<ResultData> Results = new List<ResultData>();
+    public Queue<int> SentResultNumbers = new Queue<int>();
     private int _resultsCreated = 0;
     
     public enum State { InProgress, Valid, Error }
