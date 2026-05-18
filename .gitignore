@@ -38,4 +38,4 @@ Assets/Resources/Old/new_results
 Assets/Resources/Old/old_results
 results
 *.lscache
-/Assets/ML-Agents/Timers/
+/Assets/ML-Agents/Timers*
