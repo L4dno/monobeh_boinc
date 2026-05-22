@@ -3,3 +3,10 @@ public interface IStatSaver
 {
     void Dump();
 }
+
+public class NullStatSaver : IStatSaver
+{
+    public void Dump()
+    {
+    }
+}

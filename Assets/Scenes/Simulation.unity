@@ -164,6 +164,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a212570a30b40c54d9142488a813c3b0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  restartSimulationOnFinish: 0
 --- !u!114 &380129414
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -178,6 +179,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   <TimeSystem>k__BackingField: {fileID: 506775462120483615, guid: 263fb5dd5cf748940a3509a29d039251, type: 3}
   <SimManager>k__BackingField: {fileID: 3727689513105463481, guid: 6bad08c2e7d20964e9a7e094b8c782f6, type: 3}
+  <SchedulerAgent>k__BackingField: {fileID: 4481212812535628485, guid: 5f941f5030b90ee42bdcd5c8e257f17b, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

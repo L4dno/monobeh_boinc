@@ -8,6 +8,12 @@ public class TimeTickSystem : MonoBehaviour
     public int CurTick {get; private set;} = 0;
     private float _tickTimer = 0;
 
+    public void ResetTicks()
+    {
+        CurTick = 0;
+        _tickTimer = 0;
+    }
+
     private void Update()
     {
         _tickTimer += Time.deltaTime;

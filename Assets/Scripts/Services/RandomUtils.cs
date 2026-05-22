@@ -104,7 +104,13 @@ public static class RandomUtils
         if (_isInitialized)
             throw new System.InvalidOperationException("Trying to reset current seed");
 
+        ResetSeed(seed);
+    }
+
+    public static void ResetSeed(int seed)
+    {
         UnityEngine.Random.InitState(seed);
+        z2 = 0.0f;
         _isInitialized = true;
     }
 

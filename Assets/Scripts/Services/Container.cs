@@ -15,6 +15,8 @@ public class Container : MonoBehaviour
     public TimeTickSystem TimeSystem {get; private set;}
     [field : SerializeField] 
     public SimulationManager SimManager {get; private set;}
+    [field : SerializeField]
+    public SchedulerAgent SchedulerAgent { get; private set; }
 
     public IScheduler CommonScheduler {get; private set;}
     public IScheduler TailScheduler {get; private set;}
@@ -27,12 +29,18 @@ public class Container : MonoBehaviour
         ConfigProvider = new ConfigProvider();
         Coroutines = gameObject.AddComponent<Coroutines>();
         StatService = new StatService();
-        StatSaver = new StatisticWriter(ConfigProvider, StatService);
+        StatSaver = EntryPoint.Instance.RestartSimulationOnFinish
+            ? new NullStatSaver()
+            : new StatisticWriter(ConfigProvider, StatService);
 
         TimeSystem = Instantiate(TimeSystem);
         SimManager = Instantiate(SimManager);
+        SchedulerAgent = Instantiate(SchedulerAgent);
+        
 
         CommonScheduler = new BoincScheduler();
-        TailScheduler = new BoincScheduler();
+        // здесь после тренировки меняем на обученный и запускаем с false
+        TailScheduler = new RandomScheduler();
+        Debug.Log($"[Container] tailScheduler={TailScheduler.GetType().Name}");
     }
 }

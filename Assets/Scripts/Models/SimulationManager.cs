@@ -2,6 +2,7 @@
 using UnityEditor;
 #endif
 using UnityEngine;
+using Unity.MLAgents;
 
 using System.Collections;
 using System.Collections.Generic;
@@ -12,6 +13,7 @@ using System.ComponentModel;
 public class SimulationManager : MonoBehaviour
 {
 
+    public event Action OnSimulationFinished;
     private IStatSaver _statisticWriter;
     private TimeTickSystem _timeSystem;
     private SimConfig _config;
@@ -79,10 +81,13 @@ public class SimulationManager : MonoBehaviour
         var configProvider = Container.Instance.ConfigProvider;
         _config = configProvider.SimConfig;
         _finishRequested = false;
+        _simulationCoroutines.Clear();
 
         Actors = new Dictionary<string, BaseActor>();
         hosts = new List<HostModel>();
         _statisticWriter = Container.Instance.StatSaver;
+        Link = null;
+        GridTotalPower = 0;
 
         
         // впоследствии здесь надо будет заменить на относительное время
@@ -102,7 +107,26 @@ public class SimulationManager : MonoBehaviour
         yield return new WaitUntil(() => _finishRequested || _timeSystem.CurTick >= MaxSimulationTime);
         StopSimulationCoroutines();
         Container.Instance.StatService.RecordSimulationFinished(_timeSystem.CurTick);
+        RecordTrainingStats();
         _statisticWriter.Dump();
+        OnSimulationFinished?.Invoke();
+    }
+
+    private void RecordTrainingStats()
+    {
+        if (!EntryPoint.Instance.IsTrainingWorker)
+        {
+            return;
+        }
+
+        var stats = Container.Instance.StatService.GetStats();
+        int tailStartTick = stats.TailStartTick >= 0 ? stats.TailStartTick : stats.FinishTick;
+        int tailMakespan = Mathf.Max(stats.FinishTick - tailStartTick, 0);
+        float deadlineMissRate = stats.ResultsAnalyzed > 0 ? stats.ResultsTooLate / (float)stats.ResultsAnalyzed : 0;
+        Academy.Instance.StatsRecorder.Add("Tail/Makespan", tailMakespan, StatAggregationMethod.Average);
+        Academy.Instance.StatsRecorder.Add("Tail/DeadlineMissRate", deadlineMissRate, StatAggregationMethod.Average);
+        Academy.Instance.StatsRecorder.Add("Tail/ErrorWorkunits", stats.WorkunitsError, StatAggregationMethod.Average);
+        Academy.Instance.StatsRecorder.Add("Tail/ValidWorkunits", stats.WorkunitsValid, StatAggregationMethod.Average);
     }
 
     private void StopSimulationCoroutines()
