@@ -74,6 +74,7 @@ public class BoincScheduler : IScheduler
         {
             var applicationConfig = _database.Config.ApplicationConfigs[result.ApplicationIndex];
             result.sentTick = TimeSystem.CurTick;
+            result.sentHostId = request.HostId;
             result.deadlineTick = TimeSystem.CurTick + applicationConfig.DelayBound;
             result.isSent = true;
             tasksToSend.Add(new ClientTaskData(

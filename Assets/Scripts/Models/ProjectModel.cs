@@ -61,7 +61,14 @@ public class ProjectModel : BaseActor, IProjectStats
         StatService.RecordTailStarted(TimeSystem.CurTick);
         _isTailMode = true;
         TryFinishTailSimulation();
-        Debug.Log("switched to tail mode");
+        if (EntryPoint.Instance.IsTrainingWorker)
+        {
+            Debug.Log($"[ProjectModel] switched_to_tail tick={TimeSystem.CurTick} currentWorkunits={_database.CurrentWorkunits.Count} currentResults={_database.CurrentResults.Count} currentErrorResults={_database.CurrentErrorResults.Count} clientRequests={_database.ClientRequests.Count} activeHosts={_database.ActiveHostIndexes.Count} neededQuorumReplicas={_database.NeededQuorumReplicas}");
+        }
+        else
+        {
+            Debug.Log("switched to tail mode");
+        }
         yield return TailScheduler.Run(_database, Push);
     }
 
@@ -84,12 +91,12 @@ public class ProjectModel : BaseActor, IProjectStats
                 else if (message is ClientReplyData reply)
                 {
                     RecordActiveHost(reply.ClientName);
-                    _database.RecordHostReturnedResult(reply.HostId);
                     if (ShouldDiscardReplyWithoutStats(reply))
                     {
                         continue;
                     }
 
+                    _database.RecordHostReturnedResult(reply.HostId);
                     _database.CurrentValidations.Enqueue(reply);
                     _database.ValidationReplyAvailableCondition.Signal();
                     StatService.RecordResultReceived();
@@ -587,6 +594,7 @@ public class ProjectModel : BaseActor, IProjectStats
             return;
         }
 
+        bool wasAlreadyValid = workunit.CurrentState == WorkunitModel.State.Valid;
         if (isServerTimeout)
         {
             result.isServerTimedOut = true;
@@ -601,13 +609,14 @@ public class ProjectModel : BaseActor, IProjectStats
         var isFail = isTimeout || status == ResultStatus.Fail;
         var isSuccessIncorrect = !isFail && value == ResultValue.Incorrect;
         var shouldCreateReplacement = isFail || isSuccessIncorrect;
+        var isResultCorrect = !isFail && value == ResultValue.Correct;
         StatService.RecordResultAnalyzed(isTimeout, status == ResultStatus.Success);
         StatService.RecordGotResult(value == ResultValue.Correct ? 1 : 0, TimeSystem.CurTick);
 
         if (!isFail)
         {
             workunit.SuccessResults++;
-            if (value == ResultValue.Correct)
+            if (isResultCorrect)
             {
                 if (hostId >= 0)
                 {
@@ -662,6 +671,22 @@ public class ProjectModel : BaseActor, IProjectStats
             int credit = workunit.Credits > 0 ? workunit.Credits : 0;
             StatService.RecordAdditionalValidResult(credit);
         }
+
+        int completionHostId = hostId >= 0 ? hostId : result.sentHostId;
+        string resultKey = GetResultKey(workunit.Name, result.resultNumber);
+        _database.RecordResultCompleted(new ResultCompletionData(
+            workunit.Name,
+            result.resultNumber,
+            resultKey,
+            completionHostId,
+            result.sentTick,
+            TimeSystem.CurTick,
+            result.deadlineTick,
+            isResultCorrect,
+            isServerTimeout,
+            wasAlreadyValid && isResultCorrect,
+            result.isLearningResult
+        ));
 
         TryQueueAssimilation(workunit);
     }
@@ -719,6 +744,11 @@ public class ProjectModel : BaseActor, IProjectStats
     {
         if (_isTailMode && _database.CurrentWorkunits.Count == 0)
         {
+            if (EntryPoint.Instance.IsTrainingWorker)
+            {
+                Debug.Log($"[ProjectModel] tail_finish_requested tick={TimeSystem.CurTick} currentResults={_database.CurrentResults.Count} currentErrorResults={_database.CurrentErrorResults.Count} clientRequests={_database.ClientRequests.Count}");
+            }
+            _database.RecordTailFinished();
             SimManager.RequestSimulationFinish();
         }
     }

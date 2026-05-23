@@ -59,12 +59,13 @@ public class RandomScheduler : IScheduler
     private void ProcessWorkRequest(ClientRequestData request)
     {
         var resultsToSend = new List<ResultData>();
+        int resultsNumber = 1;
         // если есть реплики стартовые
         if (_database.CurrentResults.Count > 0)
         {
             var firstResult = _database.CurrentResults.Dequeue();
             resultsToSend.Add(firstResult);
-            int resultsNumber = request.CalculateResultsNumber(firstResult);
+            resultsNumber = request.CalculateResultsNumber(firstResult);
 
             // добавляем еще пока есть реплики
             while (resultsToSend.Count < resultsNumber && _database.CurrentResults.Count > 0)
@@ -81,7 +82,7 @@ public class RandomScheduler : IScheduler
         }
 
         // впоследствии тут будет проверка что еще не набрали рюкзак ответа
-        if (resultsToSend.Count < 1)
+        if (resultsToSend.Count < resultsNumber)
         {
             // берем ключи и случайно берем индекс реплики
             if (TryCreateRandomResult(out var result))
@@ -100,6 +101,7 @@ public class RandomScheduler : IScheduler
         {
             var applicationConfig = _database.Config.ApplicationConfigs[result.ApplicationIndex];
             result.sentTick = TimeSystem.CurTick;
+            result.sentHostId = request.HostId;
             result.deadlineTick = TimeSystem.CurTick + applicationConfig.DelayBound;
             result.isSent = true;
             tasksToSend.Add(new ClientTaskData(

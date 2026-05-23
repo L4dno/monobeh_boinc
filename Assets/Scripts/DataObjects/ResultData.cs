@@ -8,6 +8,7 @@ public class ResultData
     public readonly float outputFileSizeMb;
     public readonly int CreatedTick;
     public int sentTick;
+    public int sentHostId;
     public int deadlineTick;
     public float remainingDurationInGflops;
     public int executionStartTick;
@@ -15,6 +16,7 @@ public class ResultData
     public bool isSent;
     public bool isValidationCompleted;
     public bool isServerTimedOut;
+    public bool isLearningResult;
 
     public ResultData(string workunitName, int resultNumber,
                         float durationInGflops, float inputFileSizeMb, float outputFileSizeMb, int deadlineTick)
@@ -33,6 +35,7 @@ public class ResultData
         this.outputFileSizeMb = outputFileSizeMb;
         this.CreatedTick = createdTick;
         this.sentTick = 0;
+        this.sentHostId = -1;
         this.deadlineTick = deadlineTick;
         this.remainingDurationInGflops = durationInGflops;
         this.executionStartTick = 0;
@@ -40,5 +43,6 @@ public class ResultData
         this.isSent = false;
         this.isValidationCompleted = false;
         this.isServerTimedOut = false;
+        this.isLearningResult = false;
     }
 }

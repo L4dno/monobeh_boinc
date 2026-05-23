@@ -164,7 +164,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a212570a30b40c54d9142488a813c3b0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  restartSimulationOnFinish: 0
+  restartSimulationOnFinish: 1
 --- !u!114 &380129414
 MonoBehaviour:
   m_ObjectHideFlags: 0

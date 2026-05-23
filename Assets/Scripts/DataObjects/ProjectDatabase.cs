@@ -1,7 +1,10 @@
+using System;
 using System.Collections.Generic;
 
 public class ProjectDatabase
 {
+    public event Action<ResultCompletionData> OnResultCompleted;
+    public event Action OnTailFinished;
     public ProjectConfig Config;
     public Dictionary<string, WorkunitModel> CurrentWorkunits = new Dictionary<string, WorkunitModel>();
     public Queue<ResultData> CurrentResults = new Queue<ResultData>();
@@ -28,6 +31,16 @@ public class ProjectDatabase
     public int[] ApplicationTargets = new int[0];
     public float TheoreticalGflopsBudget = 0;
     public float EffectiveGflopsBudget = 0;
+
+    public void RecordResultCompleted(ResultCompletionData data)
+    {
+        OnResultCompleted?.Invoke(data);
+    }
+
+    public void RecordTailFinished()
+    {
+        OnTailFinished?.Invoke();
+    }
 
     public void RecordHostSentResults(int hostId, int resultsNumber)
     {
@@ -57,6 +70,47 @@ public class ProjectDatabase
         }
 
         statistics[hostId] += value;
+    }
+}
+
+public class ResultCompletionData
+{
+    public readonly string WorkunitName;
+    public readonly int ResultNumber;
+    public readonly string ResultKey;
+    public readonly int HostId;
+    public readonly int SendTick;
+    public readonly int CompletionTick;
+    public readonly int DeadlineTick;
+    public readonly bool IsValid;
+    public readonly bool IsServerTimeout;
+    public readonly bool IsExtraResultAfterWorkunitValid;
+    public readonly bool IsLearningResult;
+
+    public ResultCompletionData(
+        string workunitName,
+        int resultNumber,
+        string resultKey,
+        int hostId,
+        int sendTick,
+        int completionTick,
+        int deadlineTick,
+        bool isValid,
+        bool isServerTimeout,
+        bool isExtraResultAfterWorkunitValid,
+        bool isLearningResult)
+    {
+        WorkunitName = workunitName;
+        ResultNumber = resultNumber;
+        ResultKey = resultKey;
+        HostId = hostId;
+        SendTick = sendTick;
+        CompletionTick = completionTick;
+        DeadlineTick = deadlineTick;
+        IsValid = isValid;
+        IsServerTimeout = isServerTimeout;
+        IsExtraResultAfterWorkunitValid = isExtraResultAfterWorkunitValid;
+        IsLearningResult = isLearningResult;
     }
 }
 

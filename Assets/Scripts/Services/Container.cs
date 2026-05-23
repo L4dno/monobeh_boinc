@@ -40,7 +40,7 @@ public class Container : MonoBehaviour
 
         CommonScheduler = new BoincScheduler();
         // здесь после тренировки меняем на обученный и запускаем с false
-        TailScheduler = new RandomScheduler();
+        TailScheduler = new LearningScheduler();
         Debug.Log($"[Container] tailScheduler={TailScheduler.GetType().Name}");
     }
 }
