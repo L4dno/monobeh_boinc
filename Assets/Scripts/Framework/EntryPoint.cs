@@ -41,8 +41,9 @@ public class EntryPoint : MonoBehaviour
     private void InitializeObjects()
     {
         // запуск сервисов раньше всего остального
-        RandomUtils.ResetSeed(Container.Instance.ConfigProvider.SimConfig.DeterministicSeed);
+        RandomUtils.SetSeed(Container.Instance.ConfigProvider.SimConfig.DeterministicSeed);
         //RandomUtils.SetSeed(ResolveSimulationSeed());
+        yield return null;
     }
 
     // private int ResolveSimulationSeed()
